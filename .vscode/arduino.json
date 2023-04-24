@@ -1,0 +1,9 @@
+{
+    "sketch": "example.ino",
+    "port": "COM7",
+    "board": "adafruit:samd:adafruit_feather_m0",
+    "output": "../build",
+    "prebuild": "./prebuild.sh",
+    "postbuild": "./postbuild.sh",
+    "intelliSenseGen": "global"
+}
