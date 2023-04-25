@@ -1,9 +1,11 @@
 {
-    "sketch": "example.ino",
-    "port": "COM7",
-    "board": "adafruit:samd:adafruit_feather_m0",
+    "sketch": "3DScanner.ino",
+    "port": "COM3",
+    "board": "arduino:avr:mega",
     "output": "../build",
     "prebuild": "./prebuild.sh",
     "postbuild": "./postbuild.sh",
-    "intelliSenseGen": "global"
+    "intelliSenseGen": "global",
+    "programmer": "avrisp",
+    "configuration": "cpu=atmega2560"
 }

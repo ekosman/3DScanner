@@ -1,42 +1,50 @@
-// Define the pins used to connect the stepper motor
-const int STEP_PIN = 2;
-const int DIR_PIN = 3;
+#include <ezButton.h>
 
-// Define the number of steps per revolution
-const int STEPS_PER_REV = 200;
+// Define stepper motor connections and steps per revolution
+#define dirPin 3
+#define stepPin 2
+#define stepsPerRevolution 800
+#define stepDelay 50000
+
+int direction = 1;
+
+ezButton limitSwitch(8);
 
 void setup()
 {
-    // Set the pins as outputs
-    pinMode(STEP_PIN, OUTPUT);
-    pinMode(DIR_PIN, OUTPUT);
+    // Set the motor pins as outputs
+    Serial.begin(9600);
+    pinMode(dirPin, OUTPUT);
+    pinMode(stepPin, OUTPUT);
+    limitSwitch.setDebounceTime(50);
 }
 
 void loop()
 {
-    // Rotate the stepper motor 1 revolution clockwise
-    digitalWrite(DIR_PIN, HIGH); // Set the direction to clockwise
-    for (int i = 0; i < STEPS_PER_REV; i++)
+    // Move the stepper motor forward one revolution
+    limitSwitch.loop();
+
+    if (limitSwitch.isPressed())
     {
-        digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(1000); // Set the speed of the motor
-        digitalWrite(STEP_PIN, LOW);
-        delayMicroseconds(1000); // Set the speed of the motor
+        if (direction == 1)
+        {
+            digitalWrite(dirPin, LOW);
+            direction = -1;
+        }
+        else
+        {
+            digitalWrite(dirPin, HIGH);
+            direction = 1;
+        }
+    }
+    if (limitSwitch.isReleased())
+    {
+        Serial.println(direction);
     }
 
-    // Pause for 1 second
-    delay(1000);
-
-    // Rotate the stepper motor 1 revolution counterclockwise
-    digitalWrite(DIR_PIN, LOW); // Set the direction to counterclockwise
-    for (int i = 0; i < STEPS_PER_REV; i++)
-    {
-        digitalWrite(STEP_PIN, HIGH);
-        delayMicroseconds(1000); // Set the speed of the motor
-        digitalWrite(STEP_PIN, LOW);
-        delayMicroseconds(1000); // Set the speed of the motor
-    }
-
-    // Pause for 1 second
-    delay(1000);
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(stepDelay);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(stepDelay);
+    delay(2);
 }
