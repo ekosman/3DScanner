@@ -13,8 +13,7 @@ EasyButton limitSwitch(switchPin);
 
 void onPressedCallback()
 {
-    int state = digitalRead(dirPin);
-    switch (state)
+    switch (digitalRead(dirPin))
     {
     case LOW:
     {
@@ -46,5 +45,5 @@ void loop()
     delayMicroseconds(stepDelay);
     digitalWrite(stepPin, LOW);
     delayMicroseconds(stepDelay);
-    delay(2);
+    delay(1);
 }
