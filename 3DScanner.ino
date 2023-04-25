@@ -1,14 +1,33 @@
-#include <ezButton.h>
+#include <EasyButton.h>
 
 // Define stepper motor connections and steps per revolution
 #define dirPin 3
 #define stepPin 2
+#define switchPin 8
 #define stepsPerRevolution 800
 #define stepDelay 50000
 
 int direction = 1;
 
-ezButton limitSwitch(8);
+EasyButton limitSwitch(switchPin);
+
+void onPressedCallback()
+{
+    int state = digitalRead(dirPin);
+    switch (state)
+    {
+    case LOW:
+    {
+        digitalWrite(dirPin, HIGH);
+        break;
+    }
+    case HIGH:
+    {
+        digitalWrite(dirPin, LOW);
+        break;
+    }
+    }
+}
 
 void setup()
 {
@@ -16,32 +35,13 @@ void setup()
     Serial.begin(9600);
     pinMode(dirPin, OUTPUT);
     pinMode(stepPin, OUTPUT);
-    limitSwitch.setDebounceTime(50);
+    limitSwitch.begin();
+    limitSwitch.onPressed(onPressedCallback);
 }
 
 void loop()
 {
-    // Move the stepper motor forward one revolution
-    limitSwitch.loop();
-
-    if (limitSwitch.isPressed())
-    {
-        if (direction == 1)
-        {
-            digitalWrite(dirPin, LOW);
-            direction = -1;
-        }
-        else
-        {
-            digitalWrite(dirPin, HIGH);
-            direction = 1;
-        }
-    }
-    if (limitSwitch.isReleased())
-    {
-        Serial.println(direction);
-    }
-
+    limitSwitch.read();
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(stepDelay);
     digitalWrite(stepPin, LOW);
