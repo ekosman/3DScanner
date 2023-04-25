@@ -35,7 +35,8 @@ void setup()
     pinMode(dirPin, OUTPUT);
     pinMode(stepPin, OUTPUT);
     limitSwitch.begin();
-    limitSwitch.onPressed(onPressedCallback);
+    // limitSwitch.onPressed(onPressedCallback); // called when released
+    limitSwitch.onPressedFor(2, onPressedCallback);
 }
 
 void loop()
