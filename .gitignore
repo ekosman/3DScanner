@@ -54,3 +54,6 @@ dkms.conf
 
 # vscode
 launch.json
+
+# python
+__pycache__
