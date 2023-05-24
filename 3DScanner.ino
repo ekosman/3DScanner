@@ -13,6 +13,8 @@
 #define MAX_SPEED 100
 #define SPEED_FACTOR 100
 
+#define DELIMITER "_"
+
 int direction = 1;
 
 
@@ -98,22 +100,42 @@ void setup()
     // limitSwitch.onPressedFor(2, onPressedCallback);
 }
 
+String getEndOfNextToken(String str, int startIndex, String delimiter){
+  int index = str.indexOf(delimiter);
+  return str.substring(startIndex, index);
+}
+
 void loop()
 {
   if (Serial.available()) { // Check if there is data available to read
     String receivedString = Serial.readString(); // Read the incoming string
-    if (receivedString == "up"){
+    
+    int startIndex = 0;
+    int endIndex = receivedString.indexOf(DELIMITER, startIndex);
+    String type = receivedString.substring(startIndex, endIndex);
+    startIndex = endIndex + 1;
+    endIndex = receivedString.indexOf(DELIMITER, startIndex);
+    String direction = receivedString.substring(startIndex, endIndex);
+    startIndex = endIndex + 1;
+    endIndex = receivedString.indexOf(DELIMITER, startIndex);
+    int speed = receivedString.substring(startIndex, endIndex).toInt();
+
+    Serial.println(type);
+    Serial.println(direction);
+    Serial.println(speed);
+
+    if (direction == "up"){
       // Serial.println("move 10 up"); // Print the received string
-      move(up, 10000, 30);
-    } else if (receivedString == "down"){
+      move(up, 10000, speed);
+    } else if (direction == "down"){
       // Serial.println("move 10 up"); // Print the received string
-      move(down, 10000, 30);
-    } else if (receivedString == "forward"){
+      move(down, 10000, speed);
+    } else if (direction == "forward"){
       // Serial.println("move 10 up"); // Print the received string
-      move(forward, 10000, 30);
-    } else if (receivedString == "backward"){
+      move(forward, 10000, speed);
+    } else if (direction == "backward"){
       // Serial.println("move 10 up"); // Print the received string
-      move(backward, 10000, 30);
+      move(backward, 10000, speed);
     }
   }
 }

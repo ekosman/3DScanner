@@ -1,0 +1,4 @@
+MODE_SINGLE = "single"
+MODE_QUEUE = "QUEUE"
+
+BASE_SPEED = 25
