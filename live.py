@@ -1,11 +1,14 @@
 """This module contains a procedure for real time anomaly detection."""
 
 import argparse
+import ctypes
+import functools
 import sys
 from typing import Callable
 
 import cv2
 import numpy as np
+import serial
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from numpy.lib.function_base import copy
@@ -16,6 +19,13 @@ from PyQt5.QtMultimedia import (  # pylint: disable=no-name-in-module
     QCameraInfo,
     QMediaPlayer,
 )
+from PyQt5.QtWidgets import QComboBox
+
+from utils.constants import BASE_SPEED
+from utils.serial import serial_ports
+
+user32 = ctypes.windll.user32
+user32.SetProcessDPIAware()
 from PyQt5.QtWidgets import QComboBox  # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import (
     QApplication,
@@ -77,7 +87,10 @@ class VideoThread(QThread):
 class VideoConsumer(QThread):
     """Consume frames from a queue and perform predictions."""
 
-    def __init__(self, queue: Queue,) -> None:
+    def __init__(
+        self,
+        queue: Queue,
+    ) -> None:
         super().__init__()
         self._run_flag = True
         self._queue = queue
@@ -121,9 +134,18 @@ class Window(QWidget):
 
         self.frames_queue = Queue(max_size=32)
 
-        self.setWindowTitle("Anomaly Media Player")
-        self.setGeometry(350, 100, 700, 500)
+        self.setWindowTitle("3D Scanner")
+
+        width, height = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+        window_width = int(width * 0.75)
+        window_height = int(height * 0.75)
+        x_offset = (width - window_width) // 2
+        y_offset = (height - window_height) // 2
+
+        self.setGeometry(x_offset, y_offset, window_width, window_height)
         self.setWindowIcon(QIcon("player.png"))
+
+        self._baudrate = 9600
 
         p = self.palette()
         p.setColor(QPalette.Window, Qt.black)
@@ -152,21 +174,33 @@ class Window(QWidget):
         camera_selector.addItems([camera.description() for camera in self.available_cameras])
         camera_selector.currentIndexChanged.connect(self.select_camera)
 
-        # create button for playing
-        self.playBtn = QPushButton()
-        self.playBtn.setEnabled(True)
-        self.playBtn.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-        self.playBtn.clicked.connect(self.play_video)
+        buttons_grid = self._setup_buttons()
+        buttons_grid_widget = QWidget()
+        buttons_grid_widget.setLayout(buttons_grid)
 
         # create grid layout
         gridLayout = QGridLayout()
+        gridLayout.addWidget(buttons_grid_widget, 0, 0, 5, 5)
 
         # AD signal
         self.graphWidget = MplCanvas(self, width=5, height=1, dpi=100)
 
+        # serial list
+        self.serial_list_widget = QComboBox()
+
+        self._ports = serial_ports()
+        for i, port in enumerate(self._ports):
+            self.serial_list_widget.insertItem(i, port)
+
+        self.serial_list_widget.activated.connect(self._serial_list_clicked)
+        self._serial_list_clicked(0)
+
         # set widgets to the hbox layout
-        gridLayout.addWidget(self.graphWidget, 0, 0, 1, 5)
-        gridLayout.addWidget(self.camera_view, 1, 0, 5, 5)
+        gridLayout.addWidget(self.serial_list_widget, 0, 0, 1, 2)
+        # gridLayout.addWidget(self.upbtn, 1, 0, 1, 2)
+        # gridLayout.addWidget(self.downbtn, 2, 0, 1, 2)
+        # gridLayout.addWidget(self.graphWidget, 0, 0, 1, 2)
+        # gridLayout.addWidget(self.camera_view, 1, 0, 5, 5)
 
         self.setLayout(gridLayout)
 
@@ -179,6 +213,52 @@ class Window(QWidget):
         self._video_consumer = VideoConsumer(queue=self.frames_queue)
         self.thread.start()
         self._video_consumer.start()
+
+    def _setup_buttons(self):
+        dirs = ["up", "down", "forward", "backward"]
+        modes = ["", "fast"]
+        buttons = {}
+        for dir in dirs:
+            for mode in modes:
+                message = ["single", dir]
+                speed = BASE_SPEED
+                if mode == "fast":
+                    speed *= 2
+
+                speed = str(speed)
+                message.append(speed)
+                message = "_".join(message)
+                message = bytes(message, "utf-8")
+                button = QPushButton(" ".join([mode, dir]))
+                button.setEnabled(True)
+                button.clicked.connect(functools.partial(self.move, action=message))
+                buttons[" ".join([mode, dir])] = button
+
+        gridLayout = QGridLayout()
+        gridLayout.addWidget(buttons["fast up"], 0, 2, 1, 1)
+        gridLayout.addWidget(buttons[" up"], 1, 2, 1, 1)
+
+        gridLayout.addWidget(buttons["fast backward"], 2, 0, 1, 1)
+        gridLayout.addWidget(buttons[" backward"], 2, 1, 1, 1)
+
+        gridLayout.addWidget(buttons["fast forward"], 2, 4, 1, 1)
+        gridLayout.addWidget(buttons[" forward"], 2, 3, 1, 1)
+
+        gridLayout.addWidget(buttons["fast down"], 4, 2, 1, 1)
+        gridLayout.addWidget(buttons[" down"], 3, 2, 1, 1)
+
+        return gridLayout
+
+    def _serial_list_clicked(
+        self,
+        item,
+    ):
+        port = self._ports[item]
+        self.ser = serial.Serial()
+        self.ser.baudrate = self._baudrate
+        self.ser.port = port
+        self.ser.open()
+        print(f"Using serial {port}")
 
     def convert_cv_qt(self, cv_img: np.ndarray) -> QPixmap:
         """Convert from an opencv image to QPixmap."""
@@ -200,6 +280,9 @@ class Window(QWidget):
 
         # getting current camera name
         self.current_camera_name = self.available_cameras[camera].description()
+
+    def move(self, action) -> None:
+        self.ser.write(action)
 
     def play_video(self) -> None:
         """Change the state of the media player."""
