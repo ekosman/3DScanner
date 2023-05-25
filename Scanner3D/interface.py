@@ -32,7 +32,7 @@ class Direction(Enum):
 class Scanner:
     BASE_SPEED: int = 25
 
-    def __init__(self, baudrate: int = 9600, port: Optional[str] = None) -> None:
+    def __init__(self, port: str, baudrate: int = 9600) -> None:
         self._baudrate = baudrate
         self._port = port
         self._connection = Serial()
