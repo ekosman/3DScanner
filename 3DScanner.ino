@@ -110,32 +110,43 @@ void loop()
   if (Serial.available()) { // Check if there is data available to read
     String receivedString = Serial.readString(); // Read the incoming string
     
+    // type
     int startIndex = 0;
     int endIndex = receivedString.indexOf(DELIMITER, startIndex);
     String type = receivedString.substring(startIndex, endIndex);
+    
+    // direction
     startIndex = endIndex + 1;
     endIndex = receivedString.indexOf(DELIMITER, startIndex);
     String direction = receivedString.substring(startIndex, endIndex);
+    
+    // steps
+    startIndex = endIndex + 1;
+    endIndex = receivedString.indexOf(DELIMITER, startIndex);
+    int steps = receivedString.substring(startIndex, endIndex).toInt();
+
+    // speed
     startIndex = endIndex + 1;
     endIndex = receivedString.indexOf(DELIMITER, startIndex);
     int speed = receivedString.substring(startIndex, endIndex).toInt();
 
     Serial.println(type);
     Serial.println(direction);
+    Serial.println(steps);
     Serial.println(speed);
 
     if (direction == "up"){
       // Serial.println("move 10 up"); // Print the received string
-      move(up, 10000, speed);
+      move(up, steps, speed);
     } else if (direction == "down"){
       // Serial.println("move 10 up"); // Print the received string
-      move(down, 10000, speed);
+      move(down, steps, speed);
     } else if (direction == "forward"){
       // Serial.println("move 10 up"); // Print the received string
-      move(forward, 10000, speed);
+      move(forward, steps, speed);
     } else if (direction == "backward"){
       // Serial.println("move 10 up"); // Print the received string
-      move(backward, 10000, speed);
+      move(backward, steps, speed);
     }
   }
 }

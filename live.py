@@ -21,8 +21,8 @@ from PyQt5.QtMultimedia import (  # pylint: disable=no-name-in-module
 )
 from PyQt5.QtWidgets import QComboBox
 
-from utils.constants import BASE_SPEED
-from utils.serial import serial_ports
+from Scanner3D.interface import Direction, Mode, Scanner, SpeedMode
+from Scanner3D.utils.serial import serial_ports
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -216,48 +216,42 @@ class Window(QWidget):
 
     def _setup_buttons(self):
         dirs = ["up", "down", "forward", "backward"]
-        modes = ["", "fast"]
+        modes = ["normal", "fast"]
         buttons = {}
         for dir in dirs:
             for mode in modes:
-                message = ["single", dir]
-                speed = BASE_SPEED
-                if mode == "fast":
-                    speed *= 2
-
-                speed = str(speed)
-                message.append(speed)
-                message = "_".join(message)
-                message = bytes(message, "utf-8")
                 button = QPushButton(" ".join([mode, dir]))
                 button.setEnabled(True)
-                button.clicked.connect(functools.partial(self.move, action=message))
+                message = Scanner.generate_command_for_specs(
+                    mode=Mode.SINGLE, direction=Direction(dir), steps=10000, speed=SpeedMode(mode)
+                )
+                button.clicked.connect(functools.partial(self._move, action=message))
                 buttons[" ".join([mode, dir])] = button
 
         gridLayout = QGridLayout()
         gridLayout.addWidget(buttons["fast up"], 0, 2, 1, 1)
-        gridLayout.addWidget(buttons[" up"], 1, 2, 1, 1)
+        gridLayout.addWidget(buttons["normal up"], 1, 2, 1, 1)
 
         gridLayout.addWidget(buttons["fast backward"], 2, 0, 1, 1)
-        gridLayout.addWidget(buttons[" backward"], 2, 1, 1, 1)
+        gridLayout.addWidget(buttons["normal backward"], 2, 1, 1, 1)
 
         gridLayout.addWidget(buttons["fast forward"], 2, 4, 1, 1)
-        gridLayout.addWidget(buttons[" forward"], 2, 3, 1, 1)
+        gridLayout.addWidget(buttons["normal forward"], 2, 3, 1, 1)
 
         gridLayout.addWidget(buttons["fast down"], 4, 2, 1, 1)
-        gridLayout.addWidget(buttons[" down"], 3, 2, 1, 1)
+        gridLayout.addWidget(buttons["normal down"], 3, 2, 1, 1)
 
         return gridLayout
+    
+    def _move(self, action):
+        self._scanner.move(action)
 
     def _serial_list_clicked(
         self,
         item,
     ):
         port = self._ports[item]
-        self.ser = serial.Serial()
-        self.ser.baudrate = self._baudrate
-        self.ser.port = port
-        self.ser.open()
+        self._scanner = Scanner(port=port, baudrate=self._baudrate)
         print(f"Using serial {port}")
 
     def convert_cv_qt(self, cv_img: np.ndarray) -> QPixmap:
