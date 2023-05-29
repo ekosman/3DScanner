@@ -1,27 +1,35 @@
 import sys
 import time
+
 import cv2
-import pickle
-import PIL
-from PIL import Image
 import numpy as np
-from IdsCamera import Camera
 from ArduinoControl import ArduinoControl
-from Utils import FrameThread, create_Folder
+from IdsCamera import Camera
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QImage
+from PyQt5.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QFrame,
+    QGraphicsScene,
+    QGraphicsView,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 from pyueye import ueye
-from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QHBoxLayout, QPushButton, QGridLayout, QGraphicsScene, QGraphicsView, QVBoxLayout, QFrame, QCheckBox
-from PyQt5.QtGui import QImage, QFont
-from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QCoreApplication
+from Utils import FrameThread, create_Folder
 
 
 class ControlWindow(QWidget):
-
     update_signal = pyqtSignal(QImage, name="update_signal")
     changeImgIdx = pyqtSignal(int)
     # keyPressed = pyqtSignal(int)
 
     def __init__(self, camera, parent=None):
-
         super(ControlWindow, self).__init__(parent)
         self.optotune_value = 20
 
@@ -30,8 +38,6 @@ class ControlWindow(QWidget):
         self.image = None
         self.img_idx = 0
         self.make_folder = False
-
-
 
         # window cosmetics
         self.setWindowTitle("Microscope controller")
@@ -73,7 +79,6 @@ class ControlWindow(QWidget):
         optotune_num_layout.addWidget(self.optotune_display)
         optotune_num_layout.addLayout(self.up_down_opto_layout)
 
-
         # --------------------  Capture Settings  -----------------------#
 
         self.do_save = False
@@ -81,11 +86,11 @@ class ControlWindow(QWidget):
 
         # --------------------  Saving Settings  -----------------------#
 
-        self.curr_action = ''
-        self.Folder = 'D:\\Judith\\GUI\\DiverMicroscope\\ImageTests\\'
+        self.curr_action = ""
+        self.Folder = "D:\\Judith\\GUI\\DiverMicroscope\\ImageTests\\"
         self.curr_action = None
         self.save_image = False
-        self.dirName = ''
+        self.dirName = ""
 
         # --------------------  Display Settings  -----------------------#
         self.graphics_view = QGraphicsView(self)
@@ -100,9 +105,8 @@ class ControlWindow(QWidget):
         display_layout = QVBoxLayout()
         display_layout.addWidget(self.graphics_view)
 
-
         self.img_idx = 0
-        img_number_lbl = QLabel('Image Index')
+        img_number_lbl = QLabel("Image Index")
         self.img_number_display = QLabel(self)
         self.img_number_display.setFrameShape(QFrame.Panel)
         self.img_number_display.setFixedSize(70, 25)
@@ -144,8 +148,6 @@ class ControlWindow(QWidget):
         exposure_layout.setSpacing(20)
         exposure_layout.addWidget(self.exposure_display)
         exposure_layout.addLayout(up_down_expo_layout)
-
-
 
         # --------------------  Capture button  -----------------------#
         btn_width = 85
@@ -205,7 +207,7 @@ class ControlWindow(QWidget):
         self.optotune_enter_value_box.clicked.connect(self.enter_opto_limits_checked)
 
         # ------------Upper Limit------------- #
-        self.opto_upper_limit = QLabel('Upper Limit')
+        self.opto_upper_limit = QLabel("Upper Limit")
         self.opto_upper_limit_display = QLabel(self)
         self.opto_upper_limit_value = 15
         self.opto_upper_limit_display.setFrameShape(QFrame.Panel)
@@ -226,7 +228,7 @@ class ControlWindow(QWidget):
         self.opto_up_down_btn.setEnabled(False)
 
         # ------------Lower Limit------------- #
-        self.opto_lower_limit = QLabel('Lower Limit')
+        self.opto_lower_limit = QLabel("Lower Limit")
         self.opto_lower_limit_display = QLabel(self)
         self.opto_lower_limit_value = 1
         self.opto_lower_limit_display.setFrameShape(QFrame.Panel)
@@ -352,7 +354,7 @@ class ControlWindow(QWidget):
             self.one_shot_btn.setEnabled(False)
             self.img_idx = self.opto_lower_limit_value
             if self.make_folder == True:
-                self.curr_action = 'LimitedStack'
+                self.curr_action = "LimitedStack"
                 self.dirName = create_Folder(self.curr_action, self.Folder)
                 self.save_image = True
             self.arduino.startFocalStack()
@@ -360,7 +362,7 @@ class ControlWindow(QWidget):
             self.live_view_btn.setEnabled(False)
             self.one_shot_btn.setEnabled(False)
             if self.make_folder == True:
-                self.curr_action = 'Stack'
+                self.curr_action = "Stack"
                 self.dirName = create_Folder(self.curr_action, self.Folder)
                 self.save_image = True
             self.img_idx = 0
@@ -370,13 +372,12 @@ class ControlWindow(QWidget):
             self.live_view_btn.setEnabled(True)
             self.one_shot_btn.setEnabled(True)
 
-
     def live_view_btn_clicked(self):
         if self.live_view_btn.isChecked():
             self.stack_btn.setEnabled(False)
             self.one_shot_btn.setEnabled(False)
             if self.make_folder == True:
-                self.curr_action = 'LiveView'
+                self.curr_action = "LiveView"
                 self.dirName = create_Folder(self.curr_action, self.Folder)
                 self.save_image = True
             self.img_idx = 0
@@ -413,7 +414,7 @@ class ControlWindow(QWidget):
             self.stack_btn.setEnabled(False)
             self.live_view_btn.setEnabled(False)
             if self.make_folder == True:
-                self.curr_action = 'OneShot'
+                self.curr_action = "OneShot"
                 self.dirName = create_Folder(self.curr_action, self.Folder)
                 self.save_image = True
             self.img_idx = 0
@@ -422,11 +423,10 @@ class ControlWindow(QWidget):
             self.stack_btn.setEnabled(True)
             self.live_view_btn.setEnabled(True)
 
-
     def save_btn_clicked(self):
         if self.save_btn.isChecked() and self.live_view_btn.isChecked():
             self.img_idx = 0
-            self.curr_action = 'LiveView'
+            self.curr_action = "LiveView"
             self.dirName = create_Folder(self.curr_action, self.Folder)
             self.save_image = True
         elif self.save_btn.isChecked():
@@ -441,7 +441,6 @@ class ControlWindow(QWidget):
             self.arduino.LightsOff()
         else:
             self.arduino.LightsOn()
-
 
     def optotune_step_up_btn_clicked(self):
         self.step_value = self.step_value - 1
@@ -515,7 +514,6 @@ class ControlWindow(QWidget):
         self.live_view_btn.setChecked(True)
         self.live_view_btn_clicked()
 
-
     def exposure_increase(self):
         if self.exposure_value >= 40:
             self.exposure_value = 40
@@ -555,8 +553,6 @@ class ControlWindow(QWidget):
             sys.exit(app.exec_())
             cv2.destroyAllWindows()
 
-
-
     @pyqtSlot(int)
     def img_idx_valuechange(self, image_idx):
         self.img_number_display.setNum(image_idx)
@@ -581,7 +577,10 @@ class ControlWindow(QWidget):
             self.live_view_btn.setEnabled(True)
             self.live_view_btn.setChecked(True)
             self.live_view_btn_clicked()
-        elif image_idx > self.opto_upper_limit_value and self.optotune_enter_value_box.isChecked():
+        elif (
+            image_idx > self.opto_upper_limit_value
+            and self.optotune_enter_value_box.isChecked()
+        ):
             self.save_image = False
             self.make_folder = False
             self.save_btn.setEnabled(True)
@@ -591,8 +590,6 @@ class ControlWindow(QWidget):
             self.live_view_btn.setEnabled(True)
             self.live_view_btn.setChecked(True)
             self.live_view_btn_clicked()
-
-
 
     def update_image(self, image):
         self.scene.update()
@@ -611,10 +608,20 @@ class ControlWindow(QWidget):
         if self.save_image == True:
             exp = self.camera.get_exposure()
             exp_rounded = round(exp, 2)
-            file = open(self.dirName + 'file' + str(self.img_idx) + 'Exp_' + str(exp_rounded)  + 'TotStepNumbers' + str(self.optotune_value) + '.bin', 'wb')
+            file = open(
+                self.dirName
+                + "file"
+                + str(self.img_idx)
+                + "Exp_"
+                + str(exp_rounded)
+                + "TotStepNumbers"
+                + str(self.optotune_value)
+                + ".bin",
+                "wb",
+            )
             image.tofile(file)
 
-        image = cv2.cvtColor(image.astype('uint8'), cv2.COLOR_BAYER_GB2BGR)
+        image = cv2.cvtColor(image.astype("uint8"), cv2.COLOR_BAYER_GB2BGR)
         image = cv2.resize(image, (500, 500))
         height, width, ch = image.shape
         bytesPerLine = ch * width
@@ -651,7 +658,7 @@ class ControlWindow(QWidget):
     def activeButton(self, button):
         QSS = """
         QPushButton:active {
-        border: 1px solid; 
+        border: 1px solid;
         }
         """
         button.setStyleSheet(QSS)
@@ -671,7 +678,7 @@ class ControlWindow(QWidget):
     #     button.setStyleSheet(QSS)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     # --------------------  Camera initial setup  -----------------------#
     camera = Camera()

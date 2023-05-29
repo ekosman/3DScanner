@@ -1,6 +1,5 @@
 from enum import Enum
-from time import sleep
-from typing import Optional, Union
+from typing import Union
 
 from serial import Serial
 
@@ -61,7 +60,9 @@ class Scanner:
         c.write(action)
 
     @staticmethod
-    def generate_command_for_specs(mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]):
+    def generate_command_for_specs(
+        mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]
+    ):
         command = [mode.value, direction.value, str(steps)]
         if isinstance(speed, SpeedMode):
             command.append(speed.speed())

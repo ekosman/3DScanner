@@ -119,7 +119,7 @@ void loop()
   {
     readInput();
   } //get input
-  
+
   //System Settings - Optotune Camera
   if (setting == 'O' || setting == 'o') {
     optotuneControl(); setting = 'q';// Control Optotune
@@ -142,7 +142,7 @@ void loop()
     if (mode == 'l') {
 		  captureLiveView(); // Captures continues live view
     }
-    
+
     if (mode == 'b') {
       stopView(); setting = 'q';
     }
@@ -151,7 +151,7 @@ void loop()
       FocalStack(); setting = 'q';
     }
 
-    
+
   }
   //DEBUG
   if (setting == 'd') // Debug
@@ -161,7 +161,7 @@ void loop()
     }
 
   }
-  
+
 }
 
 ////////////////////////
@@ -226,7 +226,7 @@ void optotuneControl()
   int delayFirstHalf   = (stepExposure - prePatternDelay) / 2;
   int delaySecondHalf  =  stepExposure - prePatternDelay - delayFirstHalf;
 
-  
+
   Serial.println("");
   Serial.print("Exposure time = ");    Serial.print(exposureTime/1000); Serial.println("ms");
   Serial.print("Step duration is ");   Serial.print(stepExposure); Serial.println("us");
@@ -234,7 +234,7 @@ void optotuneControl()
   Serial.print("First duty cycle: ");  Serial.print(delayFirstHalf); Serial.println("us");
   Serial.print("Second duty cycle: "); Serial.print(delaySecondHalf); Serial.println("us");
   Serial.print("Max current: ");       Serial.print(driverAmp_max_use); Serial.println("mA");
-    
+
     stepNum = 0;
   }
   if (mode == 'F' || mode == 'f') {
@@ -274,14 +274,14 @@ void optotuneControl()
 void cameraExposure()
 {
   // int delayTimeForInternal = ledTime[ledMode]-ledTime[e];
-  // for (int i=0; i <= 6; i++) { digitalWrite(ledTrigger_high[i], ledState[i]);} 
+  // for (int i=0; i <= 6; i++) { digitalWrite(ledTrigger_high[i], ledState[i]);}
   digitalWrite(externalTrigger, HIGH);
   //digitalWrite(ledTrigger_low[6], HIGH); //TODO remove after UV test
-  digitalWrite(cameraTrigger, HIGH);   //trigger the camera high  
+  digitalWrite(cameraTrigger, HIGH);   //trigger the camera high
   delayMicroseconds(ledTime[e]);//wait for external exposure
   digitalWrite(externalTrigger,LOW); //turn external LED off
   // delayMicroseconds(delayTimeForInternal); //wait for internal exposure
-  //for (int i=0; i <= 6; i++) { digitalWrite(ledTrigger_high[i], LOW);} // turn internal lights off  
+  //for (int i=0; i <= 6; i++) { digitalWrite(ledTrigger_high[i], LOW);} // turn internal lights off
   //digitalWrite(ledTrigger_low[6], LOW); //TODO remove after UV test
 
   digitalWrite(cameraTrigger, LOW);  // set camera low
@@ -332,22 +332,22 @@ void  stopView()
 {
   digitalWrite(cameraTrigger, LOW);
   digitalWrite(externalTrigger, LOW);
-} 
+}
 
 //////////////////
-//Capture Focal Stack 
+//Capture Focal Stack
 /////////////////
 
 void FocalStack()
 {
-  Serial.println("Single Focal Stack"); 
+  Serial.println("Single Focal Stack");
   Serial.print("Step Number(1-"); Serial.print(stepTotal); Serial.print("):");
   if (scanRange == 0)
   {
-    for (int stepNum = 0; stepNum < stepTotal; stepNum++) 
-    //for (int stepNum = 0; stepNum < endStep; stepNum++) 
+    for (int stepNum = 0; stepNum < stepTotal; stepNum++)
+    //for (int stepNum = 0; stepNum < endStep; stepNum++)
     {
-      Serial.print(stepNum+1); 
+      Serial.print(stepNum+1);
       setCurrentDriver(driverVals[stepNum]); //set new Optotune value
       currentReport = ((float)driverVals[stepNum] / 4095) * driverAmp_max; Serial.print(" ("); Serial.print(currentReport); Serial.print("mA)"); Serial.print(", ");
       cameraDelay();cameraExposure();
@@ -355,9 +355,9 @@ void FocalStack()
   }
   if (scanRange == 1)
   {
-    for (int stepNum = scanMin; stepNum < scanMax; stepNum++) 
+    for (int stepNum = scanMin; stepNum < scanMax; stepNum++)
     {
-      Serial.print(stepNum+1); 
+      Serial.print(stepNum+1);
       setCurrentDriver(driverVals[stepNum]); //set new Optotune value
       currentReport = ((float)driverVals[stepNum] / 4095) * driverAmp_max; Serial.print(" ("); Serial.print(currentReport); Serial.print("mA)"); Serial.print(", ");
       cameraDelay();cameraExposure();
@@ -376,15 +376,15 @@ void captureFocalSweep()
   int prePatternDelay  =  int( ((100.0-float(projExposurePer)) * float(stepExposure)) / 100.0);
   int delayFirstHalf   = (stepExposure - prePatternDelay) / 2;
   int delaySecondHalf  =  stepExposure - prePatternDelay - delayFirstHalf;
-  
+
   Serial.println("proj Exposure"); Serial.print(projExposurePer);
   Serial.println("pre Pattern Delay"); Serial.print(prePatternDelay);
   Serial.println("delay first half"); Serial.print(delayFirstHalf);
   Serial.println("dealy Second Half"); Serial.println(delaySecondHalf);
-  
+
   digitalWrite(cameraTrigger, HIGH);  //trigger the camera high
   Serial.println("Camera Trigger High");
-  
+
   for (int i = 0; i < stepTotal; i++)
   {
     setCurrentDriver(driverVals[i]);    //set new Optotune value
@@ -418,12 +418,12 @@ void captureSingleStep()
   int prePatternDelay  =  int( ((100.0-float(projExposurePer)) * float(stepExposure)) / 100.0);
   int delayFirstHalf   = (stepExposure - prePatternDelay) / 2;
   int delaySecondHalf  =  stepExposure - prePatternDelay - delayFirstHalf;
-  
+
   //Serial.println(projExposurePer);
   //Serial.println(prePatternDelay);
   //Serial.println(delayFirstHalf);
   //Serial.println(delaySecondHalf);
-  
+
   digitalWrite(cameraTrigger, HIGH);  //trigger the camera high
   //Serial.print("camera Trigger high");
   delayMicroseconds(prePatternDelay);  //delay before switching to pattern
@@ -449,16 +449,16 @@ void advanceProjector()
   digitalWrite(externalTrigger, HIGH); //switch projector pattern
   Serial.print("switch projector pattern");
   delay(1);
-  digitalWrite(externalTrigger, LOW); //prepare for next rising edge  
+  digitalWrite(externalTrigger, LOW); //prepare for next rising edge
   Serial.print("prepare for next rising edge");
 }
 
 void advanceCamera()
 {
   Serial.println("Advance cam");
-  digitalWrite(cameraTrigger, HIGH); 
+  digitalWrite(cameraTrigger, HIGH);
   Serial.print("cameraTrigger high");
   delay(10);
-  digitalWrite(cameraTrigger, LOW); //prepare for next rising edge 
-  Serial.print("cameraTrigger low"); 
+  digitalWrite(cameraTrigger, LOW); //prepare for next rising edge
+  Serial.print("cameraTrigger low");
 }

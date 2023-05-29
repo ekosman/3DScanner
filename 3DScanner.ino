@@ -193,7 +193,7 @@ void loop()
     startIndex = endIndex + 1;
     endIndex = receivedString.indexOf(DELIMITER, startIndex);
     int speed = receivedString.substring(startIndex, endIndex).toInt();
- 
+
     Serial.println(type);
     Serial.println(direction);
     Serial.println(steps);
