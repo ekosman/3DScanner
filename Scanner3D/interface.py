@@ -1,3 +1,5 @@
+"""Interface for 3D Scanner."""
+
 from enum import Enum
 from typing import Union
 
@@ -5,6 +7,8 @@ from serial import Serial
 
 
 class SpeedMode(Enum):
+    """Speed modes."""
+
     NORMAL: str = "normal"
     FAST: str = "fast"
 
@@ -17,11 +21,15 @@ class SpeedMode(Enum):
 
 
 class Mode(Enum):
+    """Run modes."""
+
     QUEUE: str = "queue"
     SINGLE: str = "single"
 
 
 class Direction(Enum):
+    """Directions in which the scanner can move."""
+
     UP = "up"
     DOWN = "down"
     FORWARD = "forward"
@@ -29,7 +37,12 @@ class Direction(Enum):
 
 
 class Scanner:
-    BASE_SPEED: int = 25
+    """Communication interface with the scanner.
+
+    Args:
+        port (int): Port to which the scanner is connected.
+        baudrate (int): Baudrate of the connection. Defaults to 9600.
+    """
 
     def __init__(self, port: str, baudrate: int = 9600) -> None:
         self._baudrate = baudrate
@@ -41,6 +54,7 @@ class Scanner:
 
     @property
     def baudrate(self) -> int:
+        """Baudrate of the connection."""
         return self._baudrate
 
     @baudrate.setter
@@ -60,9 +74,7 @@ class Scanner:
         c.write(action)
 
     @staticmethod
-    def generate_command_for_specs(
-        mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]
-    ):
+    def generate_command_for_specs(mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]):
         command = [mode.value, direction.value, str(steps)]
         if isinstance(speed, SpeedMode):
             command.append(speed.speed())

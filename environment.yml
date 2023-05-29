@@ -11,3 +11,4 @@ opencv
 pre-commit
 pyqt
 qtpy
+pyserial
