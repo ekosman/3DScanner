@@ -76,10 +76,7 @@ class Scanner:
         self._connection.write(action)
 
     @staticmethod
-<<<<<<< HEAD
-    def generate_command_for_specs(
-        mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]
-    ):
+    def generate_command_for_specs(mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]) -> bytes:
         """Generates a command from the specified values.
 
         Args:
@@ -89,13 +86,8 @@ class Scanner:
             speed (Union[SpeedMode, int]): Speed of the command,
 
         Returns:
-            _type_: _description_
+            bytes: The command to execute.
         """
-=======
-    def generate_command_for_specs(
-        mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]
-    ):
->>>>>>> 636ebe0f2a7860117952f57682d301210ba73b74
         command = [mode.value, direction.value, str(steps)]
         if isinstance(speed, SpeedMode):
             command.append(speed.speed())
