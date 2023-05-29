@@ -2,18 +2,22 @@
 #include <Servo.h>
 
 // Define stepper motor connections and steps per revolution
-#define YdirPin 3
-#define YstepPin 2
+#define Y_DIR_PIN 3
+#define Y_STEP_PIN 2
 
-#define ZdirPin 4
-#define ZstepPin 5
+#define Z_DIR_PIN 4
+#define Z_STEP_PIN 5
 
-#define XRollPin 10
+#define X_ROLL_PIN 10
 #define ZERO_X_ROLL 123
 #define DELTA_X_ROLL 20
 
-#define ZBackSwitchPin 18
-#define ZBackSwitchSignalPin 20
+#define Y_ROLL_PIN 11
+#define ZERO_Y_ROLL 123
+#define DELTA_Y_ROLL 90
+
+#define Z_BACK_SWITCH_PIN 18
+#define Z_BACK_SWITCH_SIGNAL_PIN 20
 
 #define MAX_SPEED 100
 #define SPEED_FACTOR 100
@@ -30,22 +34,22 @@ volatile bool ZBackSwitchPressed = false, ZFrontSwitchPressed = false;
 volatile unsigned int previousMillisForDebounce = 0;
 volatile unsigned int currentMillis = 0;
 
-Servo xRollServo;
+Servo xRollServo, yRollServo;
 
 enum Direction {forward, backward, up, down, xRoll, yRoll};
 
 void onPressedCallback()
 {
-    switch (digitalRead(YdirPin))
+    switch (digitalRead(Y_DIR_PIN))
     {
     case LOW:
     {
-        digitalWrite(YdirPin, HIGH);
+        digitalWrite(Y_DIR_PIN, HIGH);
         break;
     }
     case HIGH:
     {
-        digitalWrite(YdirPin, LOW);
+        digitalWrite(Y_DIR_PIN, LOW);
         break;
     }
     }
@@ -54,9 +58,9 @@ void onPressedCallback()
 int getMotorDirPin(enum Direction direction){
   int res;
   if (direction == up || direction == down)
-    res = YdirPin;
+    res = Y_DIR_PIN;
   else if (direction == forward || direction == backward)
-    res = ZdirPin;
+    res = Z_DIR_PIN;
 
   return res;
 }
@@ -64,9 +68,9 @@ int getMotorDirPin(enum Direction direction){
 int getMotorStepPin(int direction){
   int res;
   if (direction == up || direction == down)
-    res = YstepPin;
+    res = Y_STEP_PIN;
   else if (direction == forward || direction == backward)
-    res = ZstepPin;
+    res = Z_STEP_PIN;
 
   return res;
 }
@@ -122,7 +126,7 @@ void buttonStateChanged(int signalPin, bool * out){
 }
 
 void ZBackbuttonStateChanged(){
-  buttonStateChanged(ZBackSwitchSignalPin, &ZBackSwitchPressed);
+  buttonStateChanged(Z_BACK_SWITCH_SIGNAL_PIN, &ZBackSwitchPressed);
 }
 
 // void ZFrontbuttonStateChanged(){
@@ -138,9 +142,9 @@ void ZBackbuttonStateChanged(){
 // }
 
 void configureLimitSwitch(int switchPin, int switchSignalPin, intFunction func){
-  pinMode(ZBackSwitchPin, OUTPUT);
-  digitalWrite(ZBackSwitchPin, HIGH);
-  attachInterrupt(digitalPinToInterrupt(ZBackSwitchSignalPin), func, CHANGE);
+  pinMode(Z_BACK_SWITCH_PIN, OUTPUT);
+  digitalWrite(Z_BACK_SWITCH_PIN, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Z_BACK_SWITCH_SIGNAL_PIN), func, CHANGE);
 }
 
 
@@ -148,14 +152,15 @@ void setup()
 {
     // Set the motor pins as outputs
     Serial.begin(9600);
-    pinMode(YdirPin, OUTPUT);
-    pinMode(YstepPin, OUTPUT);
-    pinMode(ZdirPin, OUTPUT);
-    pinMode(ZstepPin, OUTPUT);
+    pinMode(Y_DIR_PIN, OUTPUT);
+    pinMode(Y_STEP_PIN, OUTPUT);
+    pinMode(Z_DIR_PIN, OUTPUT);
+    pinMode(Z_STEP_PIN, OUTPUT);
 
-    xRollServo.attach(XRollPin, 800, 2200);
+    xRollServo.attach(X_ROLL_PIN, 800, 2200);
+    yRollServo.attach(Y_ROLL_PIN, 800, 2200);
 
-    configureLimitSwitch(ZBackSwitchPin, ZBackSwitchSignalPin, ZBackbuttonStateChanged);
+    configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, ZBackbuttonStateChanged);
     // configureLimitSwitch(ZFrontSwitchPin, ZFrontSwitchSignalPin, ZBackbuttonStateChanged);
     // configureLimitSwitch(YBottomSwitchPin, YBottomSwitchSignalPin, ZBackbuttonStateChanged);
     // configureLimitSwitch(YUpSwitchPin, YUpSwitchSignalPin, ZBackbuttonStateChanged);
@@ -208,7 +213,8 @@ void loop()
       steps = constrain(steps, ZERO_X_ROLL - DELTA_X_ROLL, ZERO_X_ROLL + DELTA_X_ROLL);
       xRollServo.write(steps);
     }else if (direction == "yRoll"){
-      
+      steps = constrain(steps, ZERO_Y_ROLL - DELTA_Y_ROLL, ZERO_Y_ROLL + DELTA_Y_ROLL);
+      yRollServo.write(steps);
     }
   }
 }
