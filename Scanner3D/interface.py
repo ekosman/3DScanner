@@ -66,14 +66,24 @@ class Scanner:
 
     @property
     def port(self) -> str:
+        """Port of the connection."""
         return self._port
 
     @port.setter
     def port(self, value) -> None:
         self._port = value
 
-    def move(self, action) -> None:
-        self._connection.write(action)
+    def move(self, cmd: Union[str, bytes]) -> None:
+        """Send the command to the scanner controller.
+
+        Args:
+            cmd (Union[str, bytes]): Command to send to the scanner.
+        """
+
+        if isinstance(cmd, str):
+            cmd = bytes(cmd, "utf-8")
+
+        self._connection.write(cmd)
 
     @staticmethod
     def generate_command_for_specs(mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]) -> bytes:
