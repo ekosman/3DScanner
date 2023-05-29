@@ -43,14 +43,6 @@ MAX_PREDS = 50
 # pylint disable=missing-function-docstring
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Video Demo For Anomaly Detection")
-
-    parser.add_argument(
-        "--clip_length",
-        type=int,
-        default=16,
-        help="define the length of each input sample",
-    )
-
     return parser.parse_args()
 
 
