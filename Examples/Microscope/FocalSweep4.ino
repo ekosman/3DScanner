@@ -128,7 +128,7 @@ void loop() {
   if (firstLoop == 1) {
     Serial.println(
         "Hello Teensy Started, Waiting for order...");  //***Making Read Input
-                                                        //Not Work, Very Odd***
+                                                        // Not Work, Very Odd***
     setting = 'q';
     mode = 'S';
     value = stepTotal;
