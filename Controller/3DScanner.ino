@@ -88,8 +88,7 @@ void moveAxis(int direction, int revolutions, float speed) {
 }
 
 bool doesConflit(int direction) {
-  return ((YUpSwitchPressed && (direction == up)) ||
-          (YDownSwitchPressed && (direction == down)) ||
+  return ((YUpSwitchPressed && (direction == up)) || (YDownSwitchPressed && (direction == down)) ||
           (ZFrontSwitchPressed && (direction == forward)) ||
           (ZBackSwitchPressed && (direction == backward)));
 }
@@ -126,12 +125,10 @@ void ZBackbuttonStateChanged() {
 //   buttonStateChanged(YUpSwitchSignalPin, &YUpSwitchPressed);
 // }
 
-void configureLimitSwitch(int switchPin, int switchSignalPin,
-                          intFunction func) {
+void configureLimitSwitch(int switchPin, int switchSignalPin, intFunction func) {
   pinMode(Z_BACK_SWITCH_PIN, OUTPUT);
   digitalWrite(Z_BACK_SWITCH_PIN, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Z_BACK_SWITCH_SIGNAL_PIN), func,
-                  CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Z_BACK_SWITCH_SIGNAL_PIN), func, CHANGE);
 }
 
 void setup() {
@@ -145,8 +142,7 @@ void setup() {
   xRollServo.attach(X_ROLL_PIN, 800, 2200);
   yRollServo.attach(Y_ROLL_PIN, 800, 2200);
 
-  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN,
-                       ZBackbuttonStateChanged);
+  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, ZBackbuttonStateChanged);
   // configureLimitSwitch(ZFrontSwitchPin, ZFrontSwitchSignalPin,
   // ZBackbuttonStateChanged); configureLimitSwitch(YBottomSwitchPin,
   // YBottomSwitchSignalPin, ZBackbuttonStateChanged);
@@ -155,7 +151,7 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available()) {  // Check if there is data available to read
+  if (Serial.available()) {                       // Check if there is data available to read
     String receivedString = Serial.readString();  // Read the incoming string
 
     // type
@@ -196,12 +192,10 @@ void loop() {
       // Serial.println("move 10 up"); // Print the received string
       moveAxis(backward, steps, speed);
     } else if (direction == "xRoll") {
-      steps = constrain(steps, ZERO_X_ROLL - DELTA_X_ROLL,
-                        ZERO_X_ROLL + DELTA_X_ROLL);
+      steps = constrain(steps, ZERO_X_ROLL - DELTA_X_ROLL, ZERO_X_ROLL + DELTA_X_ROLL);
       xRollServo.write(steps);
     } else if (direction == "yRoll") {
-      steps = constrain(steps, ZERO_Y_ROLL - DELTA_Y_ROLL,
-                        ZERO_Y_ROLL + DELTA_Y_ROLL);
+      steps = constrain(steps, ZERO_Y_ROLL - DELTA_Y_ROLL, ZERO_Y_ROLL + DELTA_Y_ROLL);
       yRollServo.write(steps);
     }
   }
