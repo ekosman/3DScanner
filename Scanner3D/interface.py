@@ -13,11 +13,14 @@ class SpeedMode(Enum):
     FAST: str = "fast"
 
     def speed(self) -> int:
+        """Speed value represented by the speed mode."""
         if self == SpeedMode.NORMAL:
             return "25"
 
         if self == SpeedMode.FAST:
             return "50"
+
+        return 0
 
 
 class Mode(Enum):
@@ -70,11 +73,21 @@ class Scanner:
         self._port = value
 
     def move(self, action) -> None:
-        c = self._connection
-        c.write(action)
+        self._connection.write(action)
 
     @staticmethod
     def generate_command_for_specs(mode: Mode, direction: Direction, steps: int, speed: Union[SpeedMode, int]):
+        """Generates a command from the specified values.
+
+        Args:
+            mode (Mode): Operation mode. Possible values are `queue` | `queue`.
+            direction (Direction): Direction of the command.
+            steps (int): How many steps to perform.
+            speed (Union[SpeedMode, int]): Speed of the command,
+
+        Returns:
+            _type_: _description_
+        """
         command = [mode.value, direction.value, str(steps)]
         if isinstance(speed, SpeedMode):
             command.append(speed.speed())
