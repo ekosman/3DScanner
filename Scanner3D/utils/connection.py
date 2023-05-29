@@ -1,14 +1,18 @@
 import glob
 import sys
+from typing import List
 
 import serial
 
 
-def serial_ports():
+def serial_ports() -> List[str]:
     """Lists serial port names.
 
-    :raises EnvironmentError: On unsupported or unknown platforms
-    :returns: A list of the serial ports available on the system
+    Raises:
+        EnvironmentError: On unsupported or unknown platforms
+
+    Returns:
+        List[str]: A list of the serial ports available on the system
     """
     if sys.platform.startswith("win"):
         ports = ["COM%s" % (i + 1) for i in range(256)]

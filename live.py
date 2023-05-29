@@ -21,7 +21,7 @@ from PyQt5.QtMultimedia import (  # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import QComboBox
 
 from Scanner3D.interface import Direction, Mode, Scanner, SpeedMode
-from Scanner3D.utils.serial import serial_ports
+from Scanner3D.utils.connection import serial_ports
 
 user32 = ctypes.windll.user32
 user32.SetProcessDPIAware()
@@ -57,9 +57,7 @@ def get_args() -> argparse.Namespace:
 class VideoThread(QThread):
     """Read video stream and store frames in a queue."""
 
-    def __init__(
-        self, queue: Queue, preprocess_fn: Callable, camera_view: QLabel
-    ) -> None:
+    def __init__(self, queue: Queue, preprocess_fn: Callable, camera_view: QLabel) -> None:
         super().__init__()
         self._run_flag = True
         self._queue = queue
@@ -172,9 +170,7 @@ class Window(QWidget):
         camera_selector.setStatusTip("Choose camera")
         camera_selector.setToolTip("Select Camera")
         camera_selector.setToolTipDuration(2500)
-        camera_selector.addItems(
-            [camera.description() for camera in self.available_cameras]
-        )
+        camera_selector.addItems([camera.description() for camera in self.available_cameras])
         camera_selector.currentIndexChanged.connect(self.select_camera)
 
         buttons_grid = self._setup_buttons()
@@ -269,12 +265,8 @@ class Window(QWidget):
             self.camera_view.width(),
         )
         bytes_per_line = ch * w
-        convert_to_Qt_format = QtGui.QImage(
-            rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888
-        )
-        p = convert_to_Qt_format.scaled(
-            display_width, display_height, Qt.KeepAspectRatio
-        )
+        convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+        p = convert_to_Qt_format.scaled(display_width, display_height, Qt.KeepAspectRatio)
         return QPixmap.fromImage(p)
 
     def select_camera(self, camera=0) -> None:
