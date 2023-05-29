@@ -241,7 +241,7 @@ class Window(QWidget):
         gridLayout.addWidget(buttons["normal down"], 3, 2, 1, 1)
 
         return gridLayout
-    
+
     def _move(self, action):
         self._scanner.move(action)
 
