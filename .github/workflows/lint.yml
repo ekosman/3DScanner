@@ -19,4 +19,4 @@ jobs:
           pip install pylint
       - name: Analysing the code with pylint
         run: |
-          pylint --disable=import-error --fail-under=9.5 $(git ls-files '3DScanner/*.py')
+          pylint --disable=import-error --fail-under=9.5 $(git ls-files Scanner3D/*.py)
