@@ -10,8 +10,8 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
-  - repo: https://github.com/pocc/pre-commit-hooks
-    rev: master
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v16.0.4
     hooks:
       - id: clang-format
         args: [--style=Google]
