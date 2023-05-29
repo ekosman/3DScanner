@@ -49,9 +49,9 @@ long ledTime[] = {400, 200, 200, 200, 10};
 int stepTotal = 6;       // set total number of focal steps (default 200)
 int previous_stepTotal;  // used to reset stepNum when changing stepTotal
 int stepNum = 0;         // set current focal step nunmber
-int extraSteps;  // extra exposure after stack is finished (to ensure program
-                 // does not get stuck)
-boolean scanRange = 0;  // choose to only scan over a specific range
+int extraSteps;          // extra exposure after stack is finished (to ensure program
+                         // does not get stuck)
+boolean scanRange = 0;   // choose to only scan over a specific range
 
 int scanMin = 0;          // used with scan range option  int scanMin = 0
 int scanMax = stepTotal;  // used with scan range option int scanMax = stepTotal
@@ -76,9 +76,8 @@ int i;
 int a;
 int j;
 // Optotune - SPI
-const int slaveSelectPin =
-    0;  // set pin 0 as the slave select to initialize driverSPI Interface
-const int addressSPI = 0;  // set SPI address for driver to 0
+const int slaveSelectPin = 0;  // set pin 0 as the slave select to initialize driverSPI Interface
+const int addressSPI = 0;      // set SPI address for driver to 0
 int driverByte1;
 int driverByte2;  // data sent to driver: 4 bit address, 12 bit current level ->
                   // split into 2 bytes (8 bits each)
@@ -116,8 +115,8 @@ void setup() {
   pinMode(cameraTrigger, OUTPUT);
   pinMode(externalTrigger, OUTPUT);  // projector
   pinMode(ledTrigger, OUTPUT);       // LED
-  Serial.flush();  // make sure nothing's in the buffer at the beginning of the
-                   // run
+  Serial.flush();                    // make sure nothing's in the buffer at the beginning of the
+                                     // run
 }
 
 //////////////
@@ -126,9 +125,8 @@ void setup() {
 void loop() {
   // Program Startup
   if (firstLoop == 1) {
-    Serial.println(
-        "Hello Teensy Started, Waiting for order...");  //***Making Read Input
-                                                        // Not Work, Very Odd***
+    Serial.println("Hello Teensy Started, Waiting for order...");  //***Making Read Input
+                                                                   // Not Work, Very Odd***
     setting = 'q';
     mode = 'S';
     value = stepTotal;
@@ -213,11 +211,10 @@ void readInput() {
 void setCurrentDriver(int driverLevel) {
   digitalWrite(slaveSelectPin,
                LOW);  // take the SS pin low to initialize SPI communication
-  driverByte1 = (addressSPI << 4) +
-                ((unsigned int)driverLevel >>
-                 8);  // SPI address shifted 4 bits, first 4 bits of level
-  driverByte2 = 255 & driverLevel;  // last 8 bis of level (calculated using
-                                    // bitwise logic, 255 = 11111111)
+  driverByte1 = (addressSPI << 4) + ((unsigned int)driverLevel >>
+                                     8);  // SPI address shifted 4 bits, first 4 bits of level
+  driverByte2 = 255 & driverLevel;        // last 8 bis of level (calculated using
+                                          // bitwise logic, 255 = 11111111)
   SPI.transfer(driverByte1);
   SPI.transfer(driverByte2);  //  send in the address and value via SPI
   digitalWrite(slaveSelectPin,
@@ -263,9 +260,8 @@ void optotuneControl() {
     Serial.println("mA");
 
     int stepExposure = exposureTime / stepTotal;
-    int prePatternDelay =
-        int(((10000.0 - float(projExposurePer)) * float(stepExposure)) /
-            10000.0);  // ursprunglich at 100.0
+    int prePatternDelay = int(((10000.0 - float(projExposurePer)) * float(stepExposure)) /
+                              10000.0);  // ursprunglich at 100.0
     int delayFirstHalf = (stepExposure - prePatternDelay) / 2;
     int delaySecondHalf = stepExposure - prePatternDelay - delayFirstHalf;
 
@@ -430,9 +426,8 @@ void FocalStack() {
       cameraExposure();
     }
   }
-  for (int extraSteps = 0; extraSteps < 1;
-       extraSteps++)  // extra exposure after stack is finished (to ensure
-                      // program does not get stuck)
+  for (int extraSteps = 0; extraSteps < 1; extraSteps++)  // extra exposure after stack is finished
+                                                          // (to ensure program does not get stuck)
   {
     cameraDelay();
     cameraExposure();  // extra exposure after stack is finished
@@ -441,8 +436,7 @@ void FocalStack() {
 
 void captureFocalSweep() {
   int stepExposure = exposureTime / stepTotal;
-  int prePatternDelay =
-      int(((100.0 - float(projExposurePer)) * float(stepExposure)) / 100.0);
+  int prePatternDelay = int(((100.0 - float(projExposurePer)) * float(stepExposure)) / 100.0);
   int delayFirstHalf = (stepExposure - prePatternDelay) / 2;
   int delaySecondHalf = stepExposure - prePatternDelay - delayFirstHalf;
 
@@ -487,8 +481,7 @@ void captureFocalSweep() {
 
 void captureSingleStep() {
   int stepExposure = exposureTime / stepTotal;
-  int prePatternDelay =
-      int(((100.0 - float(projExposurePer)) * float(stepExposure)) / 100.0);
+  int prePatternDelay = int(((100.0 - float(projExposurePer)) * float(stepExposure)) / 100.0);
   int delayFirstHalf = (stepExposure - prePatternDelay) / 2;
   int delaySecondHalf = stepExposure - prePatternDelay - delayFirstHalf;
 
