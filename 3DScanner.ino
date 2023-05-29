@@ -45,23 +45,6 @@ enum Direction
   yRoll
 };
 
-void onPressedCallback()
-{
-  switch (digitalRead(Y_DIR_PIN))
-  {
-  case LOW:
-  {
-    digitalWrite(Y_DIR_PIN, HIGH);
-    break;
-  }
-  case HIGH:
-  {
-    digitalWrite(Y_DIR_PIN, LOW);
-    break;
-  }
-  }
-}
-
 int getMotorDirPin(enum Direction direction)
 {
   int res;
@@ -169,20 +152,20 @@ void configureLimitSwitch(int switchPin, int switchSignalPin, intFunction func){
 
 void setup()
 {
-  // Set the motor pins as outputs
-  Serial.begin(9600);
-  pinMode(Y_DIR_PIN, OUTPUT);
-  pinMode(Y_STEP_PIN, OUTPUT);
-  pinMode(Z_DIR_PIN, OUTPUT);
-  pinMode(Z_STEP_PIN, OUTPUT);
+    // Set the motor pins as outputs
+    Serial.begin(9600);
+    pinMode(Y_DIR_PIN, OUTPUT);
+    pinMode(Y_STEP_PIN, OUTPUT);
+    pinMode(Z_DIR_PIN, OUTPUT);
+    pinMode(Z_STEP_PIN, OUTPUT);
 
-  xRollServo.attach(X_ROLL_PIN, 800, 2200);
-  yRollServo.attach(Y_ROLL_PIN, 800, 2200);
+    xRollServo.attach(X_ROLL_PIN, 800, 2200);
+    yRollServo.attach(Y_ROLL_PIN, 800, 2200);
 
-  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, ZBackbuttonStateChanged);
-  // configureLimitSwitch(ZFrontSwitchPin, ZFrontSwitchSignalPin, ZBackbuttonStateChanged);
-  // configureLimitSwitch(YBottomSwitchPin, YBottomSwitchSignalPin, ZBackbuttonStateChanged);
-  // configureLimitSwitch(YUpSwitchPin, YUpSwitchSignalPin, ZBackbuttonStateChanged);
+    configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, ZBackbuttonStateChanged);
+    // configureLimitSwitch(ZFrontSwitchPin, ZFrontSwitchSignalPin, ZBackbuttonStateChanged);
+    // configureLimitSwitch(YBottomSwitchPin, YBottomSwitchSignalPin, ZBackbuttonStateChanged);
+    // configureLimitSwitch(YUpSwitchPin, YUpSwitchSignalPin, ZBackbuttonStateChanged);
 }
 
 void loop()
