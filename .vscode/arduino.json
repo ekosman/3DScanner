@@ -1,11 +1,10 @@
 {
-    "sketch": "3DScanner.ino",
-    "port": "COM3",
-    "board": "arduino:avr:mega",
+    "sketch": "blink.ino",
+    "port": "COM7",
+    "board": "arduino:avr:uno",
     "output": "../build",
     "prebuild": "./prebuild.sh",
     "postbuild": "./postbuild.sh",
     "intelliSenseGen": "global",
-    "programmer": "avrisp",
-    "configuration": "cpu=atmega2560"
+    "programmer": "avrispmkii"
 }
