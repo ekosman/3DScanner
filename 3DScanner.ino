@@ -1,4 +1,5 @@
 #include <EasyButton.h>
+#include <Servo.h>
 
 // Define stepper motor connections and steps per revolution
 #define YdirPin 3
@@ -7,20 +8,31 @@
 #define ZdirPin 4
 #define ZstepPin 5
 
-#define switchPin 8
-#define stepDelay 50
+#define XRollPin 10
+#define ZERO_X_ROLL 123
+#define DELTA_X_ROLL 20
+
+#define ZBackSwitchPin 18
+#define ZBackSwitchSignalPin 20
 
 #define MAX_SPEED 100
 #define SPEED_FACTOR 100
 
 #define DELIMITER "_"
 
-int direction = 1;
+#define DebounceTimer 50
 
+typedef void (*intFunction)();
 
-enum Direction {forward, backward, up, down};
+volatile bool YDownSwitchPressed = false, YUpSwitchPressed = false;
+volatile bool ZBackSwitchPressed = false, ZFrontSwitchPressed = false;
 
-EasyButton limitSwitch(switchPin);
+volatile unsigned int previousMillisForDebounce = 0;
+volatile unsigned int currentMillis = 0;
+
+Servo xRollServo;
+
+enum Direction {forward, backward, up, down, xRoll, yRoll};
 
 void onPressedCallback()
 {
@@ -42,9 +54,9 @@ void onPressedCallback()
 int getMotorDirPin(enum Direction direction){
   int res;
   if (direction == up || direction == down)
-    res = 3;
+    res = YdirPin;
   else if (direction == forward || direction == backward)
-    res = 4;
+    res = ZdirPin;
 
   return res;
 }
@@ -52,9 +64,9 @@ int getMotorDirPin(enum Direction direction){
 int getMotorStepPin(int direction){
   int res;
   if (direction == up || direction == down)
-    res = 2;
+    res = YstepPin;
   else if (direction == forward || direction == backward)
-    res = 5;
+    res = ZstepPin;
 
   return res;
 }
@@ -69,7 +81,7 @@ int getMotorStepValue(int direction){
   return res;
 }
 
-void move(int direction, int revolutions, float speed){
+void moveAxis(int direction, int revolutions, float speed){
   int motorDirPin = getMotorDirPin(direction);
   int stepPin = getMotorStepPin(direction);
   int stepPinValue = getMotorStepValue(direction);
@@ -78,14 +90,59 @@ void move(int direction, int revolutions, float speed){
   digitalWrite(motorDirPin, stepPinValue);
 
   for (int i = 0; i < revolutions; i++){
+    if (doesConflit(direction)){
+      Serial.println("stop!");
+      break;
+    }
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(delay);
     digitalWrite(stepPin, LOW);
     delayMicroseconds(delay);
   }
-
-
 }
+
+bool doesConflit(int direction){
+  return ((YUpSwitchPressed && (direction == up)) || (YDownSwitchPressed && (direction == down)) || (ZFrontSwitchPressed && (direction == forward)) || (ZBackSwitchPressed && (direction == backward)));
+}
+
+void buttonStateChanged(int signalPin, bool * out){
+  currentMillis = millis();
+  
+  if (currentMillis - previousMillisForDebounce >= DebounceTimer) { //important debouncing stuff
+    previousMillisForDebounce = currentMillis; //goes here
+  
+    if(digitalRead(signalPin)) {
+      * out = false;
+      Serial.print("Up,");
+    } else {
+      * out = true;
+      Serial.print("Down,");
+    } 
+  }
+}
+
+void ZBackbuttonStateChanged(){
+  buttonStateChanged(ZBackSwitchSignalPin, &ZBackSwitchPressed);
+}
+
+// void ZFrontbuttonStateChanged(){
+//   buttonStateChanged(ZFrontSwitchSignalPin, &ZFrontSwitchPressed);
+// }
+
+// void YDownbuttonStateChanged(){
+//   buttonStateChanged(YDownSwitchSignalPin, &YDownSwitchPressed);
+// }
+
+// void YUpbuttonStateChanged(){
+//   buttonStateChanged(YUpSwitchSignalPin, &YUpSwitchPressed);
+// }
+
+void configureLimitSwitch(int switchPin, int switchSignalPin, intFunction func){
+  pinMode(ZBackSwitchPin, OUTPUT);
+  digitalWrite(ZBackSwitchPin, HIGH);
+  attachInterrupt(digitalPinToInterrupt(ZBackSwitchSignalPin), func, CHANGE);
+}
+
 
 void setup()
 {
@@ -95,15 +152,15 @@ void setup()
     pinMode(YstepPin, OUTPUT);
     pinMode(ZdirPin, OUTPUT);
     pinMode(ZstepPin, OUTPUT);
-    // limitSwitch.begin();
-    // limitSwitch.onPressed(onPressedCallback); // called when released
-    // limitSwitch.onPressedFor(2, onPressedCallback);
+
+    xRollServo.attach(XRollPin, 800, 2200);
+
+    configureLimitSwitch(ZBackSwitchPin, ZBackSwitchSignalPin, ZBackbuttonStateChanged);
+    // configureLimitSwitch(ZFrontSwitchPin, ZFrontSwitchSignalPin, ZBackbuttonStateChanged);
+    // configureLimitSwitch(YBottomSwitchPin, YBottomSwitchSignalPin, ZBackbuttonStateChanged);
+    // configureLimitSwitch(YUpSwitchPin, YUpSwitchSignalPin, ZBackbuttonStateChanged);
 }
 
-String getEndOfNextToken(String str, int startIndex, String delimiter){
-  int index = str.indexOf(delimiter);
-  return str.substring(startIndex, index);
-}
 
 void loop()
 {
@@ -137,16 +194,21 @@ void loop()
 
     if (direction == "up"){
       // Serial.println("move 10 up"); // Print the received string
-      move(up, steps, speed);
+      moveAxis(up, steps, speed);
     } else if (direction == "down"){
       // Serial.println("move 10 up"); // Print the received string
-      move(down, steps, speed);
+      moveAxis(down, steps, speed);
     } else if (direction == "forward"){
       // Serial.println("move 10 up"); // Print the received string
-      move(forward, steps, speed);
+      moveAxis(forward, steps, speed);
     } else if (direction == "backward"){
       // Serial.println("move 10 up"); // Print the received string
-      move(backward, steps, speed);
+      moveAxis(backward, steps, speed);
+    } else if (direction == "xRoll"){
+      steps = constrain(steps, ZERO_X_ROLL - DELTA_X_ROLL, ZERO_X_ROLL + DELTA_X_ROLL);
+      xRollServo.write(steps);
+    }else if (direction == "yRoll"){
+      
     }
   }
 }
