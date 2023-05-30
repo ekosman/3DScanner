@@ -1,0 +1,14 @@
+python==3.9
+pylint
+black
+typing
+matplotlib
+tqdm
+yaml
+scipy
+scikit-learn
+opencv
+pre-commit
+pyqt
+qtpy
+pyserial

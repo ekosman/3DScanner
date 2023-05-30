@@ -50,3 +50,21 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+*.pyc
+
+# vscode
+launch.json
+.vscode/
+
+# python
+__pycache__
+3Dscanner.egg-info/dependency_links.txt
+3Dscanner.egg-info/not-zip-safe
+3Dscanner.egg-info/PKG-INFO
+3Dscanner.egg-info/SOURCES.txt
+3Dscanner.egg-info/top_level.txt
+Scanner3D.egg-info/dependency_links.txt
+Scanner3D.egg-info/not-zip-safe
+Scanner3D.egg-info/PKG-INFO
+Scanner3D.egg-info/SOURCES.txt
+Scanner3D.egg-info/top_level.txt

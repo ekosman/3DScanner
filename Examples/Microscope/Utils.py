@@ -1,20 +1,16 @@
-from pyueye import ueye
-from threading import Thread
-import numpy as np
-import pickle
-import time
 import os
-import cv2
-import decimal
-from PyQt5.QtCore import pyqtSignal, Qt, QRectF, QThread
-from PyQt5.QtGui import QImage, QPixmap
+import time
+from threading import Thread
+
+import numpy as np
+from pyueye import ueye
+
 # from mainDisplay import ControlWindow
 
+
 def get_bits_per_pixel(color_mode):
-    """
-    returns the number of bits per pixel for the given color mode
-    raises exception if color mode is not is not in dict
-    """
+    """Returns the number of bits per pixel for the given color mode raises
+    exception if color mode is not is not in dict."""
 
     return {
         ueye.IS_CM_SENSOR_RAW8: 8,
@@ -68,14 +64,25 @@ class MemoryInfo:
         self.img_buff = img_buff
 
         rect_aoi = ueye.IS_RECT()
-        check(ueye.is_AOI(h_cam,
-                          ueye.IS_AOI_IMAGE_GET_AOI, rect_aoi, ueye.sizeof(rect_aoi)))
+        check(
+            ueye.is_AOI(
+                h_cam, ueye.IS_AOI_IMAGE_GET_AOI, rect_aoi, ueye.sizeof(rect_aoi)
+            )
+        )
         self.width = rect_aoi.s32Width.value
         self.height = rect_aoi.s32Height.value
 
-        check(ueye.is_InquireImageMem(h_cam,
-                                      self.img_buff.mem_ptr,
-                                      self.img_buff.mem_id, self.x, self.y, self.bits, self.pitch))
+        check(
+            ueye.is_InquireImageMem(
+                h_cam,
+                self.img_buff.mem_ptr,
+                self.img_buff.mem_id,
+                self.x,
+                self.y,
+                self.bits,
+                self.pitch,
+            )
+        )
 
 
 class ImageData:
@@ -85,23 +92,34 @@ class ImageData:
         self.mem_info = MemoryInfo(h_cam, img_buff)
         self.color_mode = ueye.is_SetColorMode(h_cam, ueye.IS_GET_COLOR_MODE)
         self.bits_per_pixel = get_bits_per_pixel(self.color_mode)
-        self.array = ueye.get_data(self.img_buff.mem_ptr,
-                                   self.mem_info.width,
-                                   self.mem_info.height,
-                                   self.mem_info.bits,
-                                   self.mem_info.pitch,
-                                   True)
+        self.array = ueye.get_data(
+            self.img_buff.mem_ptr,
+            self.mem_info.width,
+            self.mem_info.height,
+            self.mem_info.bits,
+            self.mem_info.pitch,
+            True,
+        )
 
     def as_1d_image(self):
         channels = int((7 + self.bits_per_pixel) / 8)
         import numpy
+
         if channels > 1:
-            return numpy.reshape(self.array, (self.mem_info.height, self.mem_info.width, channels))
+            return numpy.reshape(
+                self.array, (self.mem_info.height, self.mem_info.width, channels)
+            )
         else:
-            return numpy.reshape(self.array, (self.mem_info.height, self.mem_info.width))
+            return numpy.reshape(
+                self.array, (self.mem_info.height, self.mem_info.width)
+            )
 
     def unlock(self):
-        check(ueye.is_UnlockSeqBuf(self.h_cam, self.img_buff.mem_id, self.img_buff.mem_ptr))
+        check(
+            ueye.is_UnlockSeqBuf(
+                self.h_cam, self.img_buff.mem_id, self.img_buff.mem_ptr
+            )
+        )
 
 
 class Rect:
@@ -113,7 +131,6 @@ class Rect:
 
 
 class FrameThread(Thread):
-
     def __init__(self, cam, views=None):
         super(FrameThread, self).__init__()
 
@@ -122,9 +139,9 @@ class FrameThread(Thread):
         self.views = views
         self.running = True
         self.frame = np.zeros((100, 100, 1))
-        self.action = ''
-        self.Folder = ''
-        self.dirName = ''
+        self.action = ""
+        self.Folder = ""
+        self.dirName = ""
         self.index = 0
         self.exp = 0
         self.save_image = False
@@ -132,10 +149,9 @@ class FrameThread(Thread):
     def run(self):
         while self.running:
             img_buffer = ImageBuffer()
-            ret = ueye.is_WaitForNextImage(self.cam.handle(),
-                                           self.timeout,
-                                           img_buffer.mem_ptr,
-                                           img_buffer.mem_id)
+            ret = ueye.is_WaitForNextImage(
+                self.cam.handle(), self.timeout, img_buffer.mem_ptr, img_buffer.mem_id
+            )
             if ret == ueye.IS_SUCCESS:
                 image_data = ImageData(self.cam.handle(), img_buffer)
                 # frame = image_data.as_1d_image()
@@ -146,7 +162,7 @@ class FrameThread(Thread):
                 # bytesPerLine = ch * width
                 # qt_image = QImage(curr_frame_resize.data, width, height, bytesPerLine, QImage.Format_RGB888)
                 self.notify(image_data)
-                print('successful frame')
+                print("successful frame")
             else:
                 print("Image Timeout")
 
@@ -157,7 +173,6 @@ class FrameThread(Thread):
             for view in self.views:
                 view.handle(image_data)
 
-
     def read(self):
         return self.frame
 
@@ -165,10 +180,11 @@ class FrameThread(Thread):
         self.cam.stop_video()
         self.running = False
 
+
 def create_Folder(action, Folder):
     t = time.localtime()
     current_time = time.strftime("%d.%m.%Y_%H.%M.%S", t)
-    dirName = Folder + action + str(current_time) + '\\'
+    dirName = Folder + action + str(current_time) + "\\"
 
     if not os.path.exists(dirName):
         os.mkdir(dirName)
@@ -177,7 +193,3 @@ def create_Folder(action, Folder):
         print("Directory ", dirName, " already exists")
 
     return dirName
-
-
-
-
