@@ -37,7 +37,8 @@ class Direction(Enum):
     DOWN = "down"
     FORWARD = "forward"
     BACKWARD = "backward"
-
+    XROLL = "xRoll"
+    YROLL = "yRoll"
 
 class Scanner:
     """Communication interface with the scanner.
