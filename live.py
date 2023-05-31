@@ -195,7 +195,7 @@ class Window(QWidget):
 
         # create grid layout
         gridLayout = QGridLayout()
-        gridLayout.addWidget(buttons_grid_widget, 2, 8, 3,3)
+        gridLayout.addWidget(buttons_grid_widget, 2, 8, 3, 3)
         # set widgets to the hbox layout
         gridLayout.addWidget(self.serial_list_widget, 0, 0, 1, 2)
         gridLayout.addWidget(self.camera_view, 1, 0, 5, 5)
@@ -227,9 +227,13 @@ class Window(QWidget):
                     text.setMaxLength(3)
                     text.setAlignment(Qt.AlignCenter)
                     text.setFont(QFont("Arial", 14))
-                    button.clicked.connect(functools.partial(self._roll, edit_text=text, dir=Direction(dir)))
+                    button.clicked.connect(
+                        functools.partial(
+                            self._roll, edit_text=text, dir=Direction(dir)
+                        )
+                    )
                     texts[" ".join([mode, dir])] = text
-                    
+
                 else:
                     message = Scanner.generate_command_for_specs(
                         mode=Mode.SINGLE,
@@ -237,8 +241,10 @@ class Window(QWidget):
                         steps=10000,
                         speed=SpeedMode(mode),
                     )
-                    button.clicked.connect(functools.partial(self._move, action=message))
-                
+                    button.clicked.connect(
+                        functools.partial(self._move, action=message)
+                    )
+
                 buttons[" ".join([mode, dir])] = button
 
         gridLayout = QGridLayout()
@@ -253,11 +259,11 @@ class Window(QWidget):
 
         gridLayout.addWidget(buttons["fast down"], 4, 2, 1, 1)
         gridLayout.addWidget(buttons["normal down"], 3, 2, 1, 1)
-        
+
         # Rolls
         gridLayout.addWidget(buttons["normal xRoll"], 1, 5, 1, 1)
         gridLayout.addWidget(texts["normal xRoll"], 1, 6, 1, 1)
-        
+
         gridLayout.addWidget(buttons["normal yRoll"], 3, 5, 1, 1)
         gridLayout.addWidget(texts["normal yRoll"], 3, 6, 1, 1)
 
@@ -265,14 +271,14 @@ class Window(QWidget):
 
     def _move(self, action) -> None:
         self._scanner.move(action)
-        
+
     def _roll(self, edit_text: QLineEdit, dir: Direction):
         message = Scanner.generate_command_for_specs(
-                    mode=Mode.SINGLE,
-                    direction=dir,
-                    steps=edit_text.text(),
-                    speed=SpeedMode("normal"),
-                )
+            mode=Mode.SINGLE,
+            direction=dir,
+            steps=edit_text.text(),
+            speed=SpeedMode("normal"),
+        )
         print(message)
         self._scanner.move(message)
 

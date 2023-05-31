@@ -40,6 +40,7 @@ class Direction(Enum):
     XROLL = "xRoll"
     YROLL = "yRoll"
 
+
 class Scanner:
     """Communication interface with the scanner.
 
