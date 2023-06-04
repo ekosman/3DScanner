@@ -4,10 +4,13 @@ import argparse
 import ctypes
 import functools
 import sys
+from time import sleep
 from typing import Callable
 
 import cv2
 import numpy as np
+from ids_peak import ids_peak, ids_peak_ipl_extension
+from ids_peak_ipl import ids_peak_ipl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from numpy.lib.function_base import copy
@@ -25,6 +28,7 @@ from PyQt5.QtMultimedia import (  # pylint: disable=no-name-in-module
     QMediaPlayer,
 )
 
+from Scanner3D.camera.ids import Camera
 from Scanner3D.interface import Direction, Mode, Scanner, SpeedMode
 from Scanner3D.utils.connection import serial_ports
 
@@ -63,19 +67,36 @@ class VideoThread(QThread):
         self._queue = queue
         self._preprocess_fn = preprocess_fn
         self._camera_view = camera_view
+        
+        ids_peak.Library.Initialize()
+        device_manager = ids_peak.DeviceManager.Instance()
+        device_manager.Update()
+
+        self._rgb_camera: Camera = Camera(device_manager=device_manager, device_name='U3-308xCP-P')
+        self._rgb_camera.open_device()
+        self._rgb_camera.start_acquisition()
+        self._rgb_image_size = [self._rgb_camera.image_height, self._rgb_camera.image_width]
 
     def run(self) -> None:
         # capture from web cam
-        cap = cv2.VideoCapture(0)
+        
+        # cap = cv2.VideoCapture(0)
         while self._run_flag:
-            ret, cv_img = cap.read()
-            if ret:
-                qt_img = self._preprocess_fn(cv_img)
-                self._camera_view.setPixmap(qt_img)
-                cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-                self._queue.put(cv_img)
+            rgb_buffer = self._rgb_camera.data_stream.WaitForFinishedBuffer(5000)
+            rgb_image_ipl = ids_peak_ipl_extension.BufferToImage(rgb_buffer)
+            rgb_image_np = rgb_image_ipl.get_numpy_1D()
+            self._rgb_camera.data_stream.QueueBuffer(rgb_buffer)
+            cv_img = rgb_image_np.reshape(self._rgb_image_size)
+            
+            qt_img = self._preprocess_fn(cv_img)
+            self._camera_view.setPixmap(qt_img)
+            cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+            self._queue.put(cv_img)
+            sleep(1/30)
+        
         # shut down capture system
-        cap.release()
+        self._rgb_camera.close_device()
+        ids_peak.Library.Close()
 
     def stop(self) -> None:
         """Sets run flag to False and waits for thread to finish."""
@@ -344,6 +365,11 @@ class Window(QWidget):
         ax.set_ylim(-0.1, 1.1)
         ax.plot(self.y_pred, "*-", linewidth=5)
         self.graphWidget.draw()
+        
+    def closeEvent(self, event):
+        self.thread._run_flag = False
+        self.thread.wait()
+        
 
 
 if __name__ == "__main__":
