@@ -47,10 +47,18 @@ def main():
 
         # list all available devices
         for i, device in enumerate(device_manager.Devices()):
-            print(str(i) + ": " + device.ModelName() + " ("
-                  + device.ParentInterface().DisplayName() + "; "
-                  + device.ParentInterface().ParentSystem().DisplayName() + "v."
-                  + device.ParentInterface().ParentSystem().Version() + ")")
+            print(
+                str(i)
+                + ": "
+                + device.ModelName()
+                + " ("
+                + device.ParentInterface().DisplayName()
+                + "; "
+                + device.ParentInterface().ParentSystem().DisplayName()
+                + "v."
+                + device.ParentInterface().ParentSystem().Version()
+                + ")"
+            )
 
         # select a device to open
         selected_device = None
@@ -66,13 +74,17 @@ def main():
                 continue
 
         # open selected device
-        device = device_manager.Devices()[selected_device].OpenDevice(ids_peak.DeviceAccessType_Control)
+        device = device_manager.Devices()[selected_device].OpenDevice(
+            ids_peak.DeviceAccessType_Control
+        )
 
         # get the remote device node map
         nodemap_remote_device = device.RemoteDevice().NodeMaps()[0]
 
         # print model name and user ID
-        print("Model Name: " + nodemap_remote_device.FindNode("DeviceModelName").Value())
+        print(
+            "Model Name: " + nodemap_remote_device.FindNode("DeviceModelName").Value()
+        )
         try:
             print("User ID: " + nodemap_remote_device.FindNode("DeviceUserID").Value())
         except ids_peak.Exception:
@@ -80,15 +92,20 @@ def main():
 
         # print sensor information, not knowing if device has the node "SensorName"
         try:
-            print("Sensor Name: " + nodemap_remote_device.FindNode("SensorName").Value())
+            print(
+                "Sensor Name: " + nodemap_remote_device.FindNode("SensorName").Value()
+            )
         except ids_peak.Exception:
             print("Sensor Name: " + "(unknown)")
 
         # print resolution
         try:
-            print("Max. resolution (w x h): "
-                  + str(nodemap_remote_device.FindNode("WidthMax").Value()) + " x "
-                  + str(nodemap_remote_device.FindNode("HeightMax").Value()))
+            print(
+                "Max. resolution (w x h): "
+                + str(nodemap_remote_device.FindNode("WidthMax").Value())
+                + " x "
+                + str(nodemap_remote_device.FindNode("HeightMax").Value())
+            )
         except ids_peak.Exception:
             print("Max. resolution (w x h): (unknown)")
 
@@ -100,5 +117,5 @@ def main():
         ids_peak.Library.Close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

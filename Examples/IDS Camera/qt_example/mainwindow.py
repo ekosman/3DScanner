@@ -22,19 +22,31 @@
 import sys
 
 try:
-    from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QMainWindow, QMessageBox, QWidget
+    from PySide6.QtCore import Qt, QTimer, Slot
     from PySide6.QtGui import QImage
-    from PySide6.QtCore import Qt, Slot, QTimer
+    from PySide6.QtWidgets import (
+        QHBoxLayout,
+        QLabel,
+        QMainWindow,
+        QMessageBox,
+        QVBoxLayout,
+        QWidget,
+    )
 except ImportError:
-    from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QMainWindow, QMessageBox, QWidget
+    from PySide2.QtWidgets import (
+        QHBoxLayout,
+        QVBoxLayout,
+        QLabel,
+        QMainWindow,
+        QMessageBox,
+        QWidget,
+    )
     from PySide2.QtGui import QImage
     from PySide2.QtCore import Qt, Slot, QTimer
 
-from ids_peak import ids_peak
-from ids_peak_ipl import ids_peak_ipl
-from ids_peak import ids_peak_ipl_extension
-
 from display import Display
+from ids_peak import ids_peak, ids_peak_ipl_extension
+from ids_peak_ipl import ids_peak_ipl
 
 VERSION = "1.2.0"
 FPS_LIMIT = 30
@@ -72,7 +84,9 @@ class MainWindow(QMainWindow):
                 self.__display = Display()
                 self.__layout.addWidget(self.__display)
                 if not self.__start_acquisition():
-                    QMessageBox.critical(self, "Unable to start acquisition!", QMessageBox.Ok)
+                    QMessageBox.critical(
+                        self, "Unable to start acquisition!", QMessageBox.Ok
+                    )
             except Exception as e:
                 QMessageBox.critical(self, "Exception", str(e), QMessageBox.Ok)
 
@@ -83,7 +97,7 @@ class MainWindow(QMainWindow):
         self.__create_statusbar()
 
         self.setMinimumSize(700, 500)
-        
+
     def __del__(self):
         self.__destroy_all()
 
@@ -116,13 +130,17 @@ class MainWindow(QMainWindow):
 
             # Return if no device could be opened
             if self.__device is None:
-                QMessageBox.critical(self, "Error", "Device could not be opened!", QMessageBox.Ok)
+                QMessageBox.critical(
+                    self, "Error", "Device could not be opened!", QMessageBox.Ok
+                )
                 return False
 
             # Open standard data stream
             datastreams = self.__device.DataStreams()
             if datastreams.empty():
-                QMessageBox.critical(self, "Error", "Device has no DataStream!", QMessageBox.Ok)
+                QMessageBox.critical(
+                    self, "Error", "Device has no DataStream!", QMessageBox.Ok
+                )
                 self.__device = None
                 return False
 
@@ -134,7 +152,9 @@ class MainWindow(QMainWindow):
             # To prepare for untriggered continuous image acquisition, load the default user set if available and
             # wait until execution is finished
             try:
-                self.__nodemap_remote_device.FindNode("UserSetSelector").SetCurrentEntry("Default")
+                self.__nodemap_remote_device.FindNode(
+                    "UserSetSelector"
+                ).SetCurrentEntry("Default")
                 self.__nodemap_remote_device.FindNode("UserSetLoad").Execute()
                 self.__nodemap_remote_device.FindNode("UserSetLoad").WaitUntilDone()
             except ids_peak.Exception:
@@ -159,9 +179,8 @@ class MainWindow(QMainWindow):
         return False
 
     def __close_device(self):
-        """
-        Stop acquisition if still running and close datastream and nodemap of the device
-        """
+        """Stop acquisition if still running and close datastream and nodemap
+        of the device."""
         # Stop Acquisition in case it is still running
         self.__stop_acquisition()
 
@@ -174,8 +193,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "Exception", str(e), QMessageBox.Ok)
 
     def __start_acquisition(self):
-        """
-        Start Acquisition on camera and start the acquisition timer to receive and display images
+        """Start Acquisition on camera and start the acquisition timer to
+        receive and display images.
 
         :return: True/False if acquisition start was successful
         """
@@ -188,14 +207,21 @@ class MainWindow(QMainWindow):
         # Get the maximum framerate possible, limit it to the configured FPS_LIMIT. If the limit can't be reached, set
         # acquisition interval to the maximum possible framerate
         try:
-            max_fps = self.__nodemap_remote_device.FindNode("AcquisitionFrameRate").Maximum()
+            max_fps = self.__nodemap_remote_device.FindNode(
+                "AcquisitionFrameRate"
+            ).Maximum()
             target_fps = min(max_fps, FPS_LIMIT)
-            self.__nodemap_remote_device.FindNode("AcquisitionFrameRate").SetValue(target_fps)
+            self.__nodemap_remote_device.FindNode("AcquisitionFrameRate").SetValue(
+                target_fps
+            )
         except ids_peak.Exception:
             # AcquisitionFrameRate is not available. Unable to limit fps. Print warning and continue on.
-            QMessageBox.warning(self, "Warning",
-                                "Unable to limit fps, since the AcquisitionFrameRate Node is"
-                                " not supported by the connected camera. Program will continue without limit.")
+            QMessageBox.warning(
+                self,
+                "Warning",
+                "Unable to limit fps, since the AcquisitionFrameRate Node is"
+                " not supported by the connected camera. Program will continue without limit.",
+            )
 
         # Setup acquisition timer accordingly
         self.__acquisition_timer.setInterval((1 / target_fps) * 1000)
@@ -221,10 +247,7 @@ class MainWindow(QMainWindow):
         return True
 
     def __stop_acquisition(self):
-        """
-        Stop acquisition timer and stop acquisition on camera
-        :return:
-        """
+        """Stop acquisition timer and stop acquisition on camera :return:"""
         # Check that a device is opened and that the acquisition is running. If not, return.
         if self.__device is None or self.__acquisition_running is False:
             return
@@ -277,33 +300,40 @@ class MainWindow(QMainWindow):
         self.__layout.addWidget(status_bar)
 
     def update_counters(self):
-        """
-        This function gets called when the frame and error counters have changed
-        :return:
-        """
-        self.__label_infos.setText("Acquired: " + str(self.__frame_counter) + ", Errors: " + str(self.__error_counter))
+        """This function gets called when the frame and error counters have
+        changed :return:"""
+        self.__label_infos.setText(
+            "Acquired: "
+            + str(self.__frame_counter)
+            + ", Errors: "
+            + str(self.__error_counter)
+        )
 
     @Slot()
     def on_acquisition_timer(self):
-        """
-        This function gets called on every timeout of the acquisition timer
-        """
+        """This function gets called on every timeout of the acquisition
+        timer."""
         try:
             # Get buffer from device's datastream
             buffer = self.__datastream.WaitForFinishedBuffer(5000)
 
             # Create IDS peak IPL image for debayering and convert it to RGBa8 format
             ipl_image = ids_peak_ipl_extension.BufferToImage(buffer)
-            converted_ipl_image = ipl_image.ConvertTo(ids_peak_ipl.PixelFormatName_BGRa8)
+            converted_ipl_image = ipl_image.ConvertTo(
+                ids_peak_ipl.PixelFormatName_BGRa8
+            )
 
             # Queue buffer so that it can be used again
             self.__datastream.QueueBuffer(buffer)
 
             # Get raw image data from converted image and construct a QImage from it
             image_np_array = converted_ipl_image.get_numpy_1D()
-            image = QImage(image_np_array,
-                           converted_ipl_image.Width(), converted_ipl_image.Height(),
-                           QImage.Format_RGB32)
+            image = QImage(
+                image_np_array,
+                converted_ipl_image.Width(),
+                converted_ipl_image.Height(),
+                QImage.Format_RGB32,
+            )
 
             # Make an extra copy of the QImage to make sure that memory is copied and can't get overwritten later on
             image_cpy = image.copy()

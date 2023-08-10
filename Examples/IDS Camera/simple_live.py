@@ -1,17 +1,13 @@
 from typing import Optional
 
-from ids_peak import ids_peak
-from ids_peak_ipl import ids_peak_ipl
-from ids_peak import ids_peak_ipl_extension
-
 import cv2
+from ids_peak import ids_peak, ids_peak_ipl_extension
+
 FPS_LIMIT = 30
 
 
 class Camera:
-
     def __init__(self, device_manager, device_name: str):
-
         self.device_manager = device_manager
         self.device_name: str = device_name
         self.device_id: Optional[int] = None
@@ -35,15 +31,19 @@ class Camera:
                 print(str(e))
 
     def open_device(self):
-
         # Return if no device was found
         if self.device_manager.Devices().empty():
             print("No device found!")
             exit()
 
-        available_devices = {device.ModelName(): idx for idx, device in enumerate(self.device_manager.Devices())}
+        available_devices = {
+            device.ModelName(): idx
+            for idx, device in enumerate(self.device_manager.Devices())
+        }
         self.device_id = available_devices[self.device_name]
-        self.device = self.device_manager.Devices()[self.device_id].OpenDevice(ids_peak.DeviceAccessType_Control)
+        self.device = self.device_manager.Devices()[self.device_id].OpenDevice(
+            ids_peak.DeviceAccessType_Control
+        )
 
         # Return if no device could be opened
         if self.device is None:
@@ -61,7 +61,9 @@ class Camera:
         self.nodemap_remote_device = self.device.RemoteDevice().NodeMaps()[0]
 
         try:
-            self.nodemap_remote_device.FindNode("UserSetSelector").SetCurrentEntry("Default")
+            self.nodemap_remote_device.FindNode("UserSetSelector").SetCurrentEntry(
+                "Default"
+            )
             self.nodemap_remote_device.FindNode("UserSetLoad").Execute()
             self.nodemap_remote_device.FindNode("UserSetLoad").WaitUntilDone()
         except ids_peak.Exception:
@@ -79,7 +81,6 @@ class Camera:
             self.data_stream.QueueBuffer(buffer)
 
     def start_acquisition(self):
-
         if self.device is None:
             return False
         if self.acquisition_running is True:
@@ -88,15 +89,19 @@ class Camera:
         # Get the maximum framerate possible, limit it to the configured FPS_LIMIT. If the limit can't be reached, set
         # acquisition interval to the maximum possible framerate
         try:
-            max_fps = self.nodemap_remote_device.FindNode("AcquisitionFrameRate").Maximum()
-            print(f'Max FPS = f{max_fps}')
+            max_fps = self.nodemap_remote_device.FindNode(
+                "AcquisitionFrameRate"
+            ).Maximum()
+            print(f"Max FPS = f{max_fps}")
 
             # target_fps = min(max_fps, FPS_LIMIT)
             # self.nodemap_remote_device.FindNode("AcquisitionFrameRate").SetValue(target_fps)
         except ids_peak.Exception:
             # AcquisitionFrameRate is not available. Unable to limit fps. Print warning and continue on.
-            print("Unable to limit fps, since the AcquisitionFrameRate Node is"
-                  " not supported by the connected camera. Program will continue without limit.")
+            print(
+                "Unable to limit fps, since the AcquisitionFrameRate Node is"
+                " not supported by the connected camera. Program will continue without limit."
+            )
 
         # Setup acquisition timer accordingly
         # self.__acquisition_timer.setInterval((1 / target_fps) * 1000)
@@ -122,10 +127,7 @@ class Camera:
         return True
 
     def stop_acquisition(self):
-        """
-        Stop acquisition timer and stop acquisition on camera
-        :return:
-        """
+        """Stop acquisition timer and stop acquisition on camera :return:"""
         # Check that a device is opened and that the acquisition is running. If not, return.
         if self.device is None or self.acquisition_running is False:
             return
@@ -154,18 +156,18 @@ class Camera:
 
 
 def run_single_camera():
-
     ids_peak.Library.Initialize()
     device_manager = ids_peak.DeviceManager.Instance()
     device_manager.Update()
 
-    rgb_camera: Camera = Camera(device_manager=device_manager, device_name='U3-308xCP-C')
+    rgb_camera: Camera = Camera(
+        device_manager=device_manager, device_name="U3-308xCP-C"
+    )
     rgb_camera.open_device()
     rgb_camera.start_acquisition()
     rgb_image_size = [rgb_camera.image_height, rgb_camera.image_width]
 
     for i in range(500):
-
         rgb_buffer = rgb_camera.data_stream.WaitForFinishedBuffer(5000)
         rgb_image_ipl = ids_peak_ipl_extension.BufferToImage(rgb_buffer)
         rgb_image_np = rgb_image_ipl.get_numpy_1D()
@@ -177,14 +179,16 @@ def run_single_camera():
     rgb_camera.close_device()
     ids_peak.Library.Close()
 
-def run_two_cameras():
 
+def run_two_cameras():
     ids_peak.Library.Initialize()
     device_manager = ids_peak.DeviceManager.Instance()
     device_manager.Update()
 
-    rgb_camera: Camera = Camera(device_manager=device_manager, device_name='U3-308xCP-C')
-    pl_camera: Camera = Camera(device_manager=device_manager, device_name='U3-308xCP-P')
+    rgb_camera: Camera = Camera(
+        device_manager=device_manager, device_name="U3-308xCP-C"
+    )
+    pl_camera: Camera = Camera(device_manager=device_manager, device_name="U3-308xCP-P")
 
     rgb_camera.open_device()
     pl_camera.open_device()
@@ -196,7 +200,6 @@ def run_two_cameras():
     pl_image_size = [pl_camera.image_height, pl_camera.image_width]
 
     for i in range(500):
-
         rgb_buffer = rgb_camera.data_stream.WaitForFinishedBuffer(5000)
         pl_buffer = pl_camera.data_stream.WaitForFinishedBuffer(5000)
 
@@ -221,6 +224,5 @@ def run_two_cameras():
 
 
 if __name__ == "__main__":
-
     run_single_camera()
     # run_two_cameras()

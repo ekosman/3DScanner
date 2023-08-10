@@ -4,10 +4,9 @@ from ids_peak import ids_peak
 
 FPS_LIMIT = 30
 
-class Camera:
-    
-    def __init__(self, device_manager, device_name: str):
 
+class Camera:
+    def __init__(self, device_manager, device_name: str):
         self.device_manager = device_manager
         self.device_name: str = device_name
         self.device_id: Optional[int] = None
@@ -31,15 +30,19 @@ class Camera:
                 print(str(e))
 
     def open_device(self):
-
         # Return if no device was found
         if self.device_manager.Devices().empty():
             print("No device found!")
             exit()
 
-        available_devices = {device.ModelName(): idx for idx, device in enumerate(self.device_manager.Devices())}
+        available_devices = {
+            device.ModelName(): idx
+            for idx, device in enumerate(self.device_manager.Devices())
+        }
         self.device_id = available_devices[self.device_name]
-        self.device = self.device_manager.Devices()[self.device_id].OpenDevice(ids_peak.DeviceAccessType_Control)
+        self.device = self.device_manager.Devices()[self.device_id].OpenDevice(
+            ids_peak.DeviceAccessType_Control
+        )
 
         # Return if no device could be opened
         if self.device is None:
@@ -57,7 +60,9 @@ class Camera:
         self.nodemap_remote_device = self.device.RemoteDevice().NodeMaps()[0]
 
         try:
-            self.nodemap_remote_device.FindNode("UserSetSelector").SetCurrentEntry("Default")
+            self.nodemap_remote_device.FindNode("UserSetSelector").SetCurrentEntry(
+                "Default"
+            )
             self.nodemap_remote_device.FindNode("UserSetLoad").Execute()
             self.nodemap_remote_device.FindNode("UserSetLoad").WaitUntilDone()
         except ids_peak.Exception:
@@ -75,7 +80,6 @@ class Camera:
             self.data_stream.QueueBuffer(buffer)
 
     def start_acquisition(self):
-
         if self.device is None:
             return False
         if self.acquisition_running is True:
@@ -84,15 +88,19 @@ class Camera:
         # Get the maximum framerate possible, limit it to the configured FPS_LIMIT. If the limit can't be reached, set
         # acquisition interval to the maximum possible framerate
         try:
-            max_fps = self.nodemap_remote_device.FindNode("AcquisitionFrameRate").Maximum()
-            print(f'Max FPS = f{max_fps}')
+            max_fps = self.nodemap_remote_device.FindNode(
+                "AcquisitionFrameRate"
+            ).Maximum()
+            print(f"Max FPS = f{max_fps}")
 
             # target_fps = min(max_fps, FPS_LIMIT)
             # self.nodemap_remote_device.FindNode("AcquisitionFrameRate").SetValue(target_fps)
         except ids_peak.Exception:
             # AcquisitionFrameRate is not available. Unable to limit fps. Print warning and continue on.
-            print("Unable to limit fps, since the AcquisitionFrameRate Node is"
-                  " not supported by the connected camera. Program will continue without limit.")
+            print(
+                "Unable to limit fps, since the AcquisitionFrameRate Node is"
+                " not supported by the connected camera. Program will continue without limit."
+            )
 
         # Setup acquisition timer accordingly
         # self.__acquisition_timer.setInterval((1 / target_fps) * 1000)
@@ -118,10 +126,7 @@ class Camera:
         return True
 
     def stop_acquisition(self):
-        """
-        Stop acquisition timer and stop acquisition on camera
-        :return:
-        """
+        """Stop acquisition timer and stop acquisition on camera :return:"""
         # Check that a device is opened and that the acquisition is running. If not, return.
         if self.device is None or self.acquisition_running is False:
             return
@@ -147,4 +152,3 @@ class Camera:
 
         except Exception as e:
             print(str(e))
-

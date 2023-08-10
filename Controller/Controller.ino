@@ -15,8 +15,6 @@
 #define ZERO_Y_ROLL 123
 #define DELTA_Y_ROLL 90
 
-
-
 #define Y_DOWN_SWITCH_PIN 26
 #define Y_DOWN_SWITCH_LOW_PIN 27
 #define Y_DOWN_SWITCH_SIGNAL_PIN 19
@@ -113,7 +111,7 @@ void buttonStateChanged(int signalPin, bool *out) {
 
   if (currentMillis - previousMillisForDebounce >= DebounceTimer) {
     previousMillisForDebounce = currentMillis;
-    *out = 1- *out;
+    *out = 1 - *out;
     // if (digitalRead(signalPin)) {
     //   *out = false;
     //   Serial.print("Up,");
@@ -128,17 +126,15 @@ void ZBackbuttonStateChanged() {
   buttonStateChanged(Z_BACK_SWITCH_SIGNAL_PIN, &ZBackSwitchPressed);
 }
 
-void ZFrontbuttonStateChanged(){
+void ZFrontbuttonStateChanged() {
   buttonStateChanged(Z_FRONT_SWITCH_SIGNAL_PIN, &ZFrontSwitchPressed);
 }
 
-void YDownbuttonStateChanged(){
+void YDownbuttonStateChanged() {
   buttonStateChanged(Y_DOWN_SWITCH_SIGNAL_PIN, &YDownSwitchPressed);
 }
 
-void YUpbuttonStateChanged(){
-  buttonStateChanged(Y_UP_SWITCH_SIGNAL_PIN, &YUpSwitchPressed);
-}
+void YUpbuttonStateChanged() { buttonStateChanged(Y_UP_SWITCH_SIGNAL_PIN, &YUpSwitchPressed); }
 
 void configureLimitSwitch(int switchPin, int switchSignalPin, int lowPin, intFunction func) {
   pinMode(switchPin, OUTPUT);
@@ -160,11 +156,14 @@ void setup() {
   xRollServo.attach(X_ROLL_PIN, 800, 2200);
   yRollServo.attach(Y_ROLL_PIN, 800, 2200);
 
-  configureLimitSwitch(Y_UP_SWITCH_PIN, Y_UP_SWITCH_SIGNAL_PIN, Y_UP_SWITCH_LOW_PIN, YUpbuttonStateChanged);
-  configureLimitSwitch(Y_DOWN_SWITCH_PIN, Y_DOWN_SWITCH_SIGNAL_PIN, Y_DOWN_SWITCH_LOW_PIN, YDownbuttonStateChanged);
-  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, Z_BACK_SWITCH_LOW_PIN, ZBackbuttonStateChanged);
-  configureLimitSwitch(Z_FRONT_SWITCH_PIN, Z_FRONT_SWITCH_SIGNAL_PIN, Z_FRONT_SWITCH_LOW_PIN, ZFrontbuttonStateChanged);
-  
+  configureLimitSwitch(Y_UP_SWITCH_PIN, Y_UP_SWITCH_SIGNAL_PIN, Y_UP_SWITCH_LOW_PIN,
+                       YUpbuttonStateChanged);
+  configureLimitSwitch(Y_DOWN_SWITCH_PIN, Y_DOWN_SWITCH_SIGNAL_PIN, Y_DOWN_SWITCH_LOW_PIN,
+                       YDownbuttonStateChanged);
+  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, Z_BACK_SWITCH_LOW_PIN,
+                       ZBackbuttonStateChanged);
+  configureLimitSwitch(Z_FRONT_SWITCH_PIN, Z_FRONT_SWITCH_SIGNAL_PIN, Z_FRONT_SWITCH_LOW_PIN,
+                       ZFrontbuttonStateChanged);
 
   Serial.print("Init complete!");
 }
