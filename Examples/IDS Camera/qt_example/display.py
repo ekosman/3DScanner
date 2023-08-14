@@ -24,9 +24,10 @@
 # General permission to copy or modify is hereby granted.
 
 import math
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QWidget
-from PySide6.QtGui import QImage, QPainter
+
 from PySide6.QtCore import QRectF, Slot
+from PySide6.QtGui import QImage, QPainter
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QWidget
 
 
 class Display(QGraphicsView):
