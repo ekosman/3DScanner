@@ -83,7 +83,7 @@ class Camera:
         for i in range(buffer_count_max):
             buffer = self.data_stream.AllocAndAnnounceBuffer(payload_size)
             self.data_stream.QueueBuffer(buffer)
-            
+
         self._is_open = True
 
     def start_acquisition(self):

@@ -94,7 +94,7 @@ class VideoThread(QThread):
                 self._rgb_camera.data_stream.QueueBuffer(rgb_buffer)
                 cv_img = rgb_image_np.reshape(self._rgb_image_size)
             else:
-                cv_img = np.random.randn(100,100,3)
+                cv_img = np.random.randn(100, 100, 3)
             qt_img = self._preprocess_fn(cv_img)
             self._camera_view.setPixmap(qt_img)
             cv_img = cv2.cvtColor(cv_img.astype(np.float32), cv2.COLOR_BGR2RGB)
