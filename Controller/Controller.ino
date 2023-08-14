@@ -15,8 +15,21 @@
 #define ZERO_Y_ROLL 123
 #define DELTA_Y_ROLL 90
 
-#define Z_BACK_SWITCH_PIN 18
-#define Z_BACK_SWITCH_SIGNAL_PIN 20
+#define Y_DOWN_SWITCH_PIN 26
+#define Y_DOWN_SWITCH_LOW_PIN 27
+#define Y_DOWN_SWITCH_SIGNAL_PIN 19
+
+#define Y_UP_SWITCH_PIN 24
+#define Y_UP_SWITCH_LOW_PIN 25
+#define Y_UP_SWITCH_SIGNAL_PIN 20
+
+#define Z_BACK_SWITCH_PIN 22
+#define Z_BACK_SWITCH_LOW_PIN 23
+#define Z_BACK_SWITCH_SIGNAL_PIN 21
+
+#define Z_FRONT_SWITCH_PIN 28
+#define Z_FRONT_SWITCH_LOW_PIN 29
+#define Z_FRONT_SWITCH_SIGNAL_PIN 18
 
 #define MAX_SPEED 100
 #define SPEED_FACTOR 100
@@ -98,14 +111,14 @@ void buttonStateChanged(int signalPin, bool *out) {
 
   if (currentMillis - previousMillisForDebounce >= DebounceTimer) {
     previousMillisForDebounce = currentMillis;
-
-    if (digitalRead(signalPin)) {
-      *out = false;
-      Serial.print("Up,");
-    } else {
-      *out = true;
-      Serial.print("Down,");
-    }
+    *out = 1 - *out;
+    // if (digitalRead(signalPin)) {
+    //   *out = false;
+    //   Serial.print("Up,");
+    // } else {
+    //   *out = true;
+    //   Serial.print("Down,");
+    // }
   }
 }
 
@@ -113,22 +126,34 @@ void ZBackbuttonStateChanged() {
   buttonStateChanged(Z_BACK_SWITCH_SIGNAL_PIN, &ZBackSwitchPressed);
 }
 
-// void ZFrontbuttonStateChanged(){
-//   buttonStateChanged(ZFrontSwitchSignalPin, &ZFrontSwitchPressed);
-// }
+void ZFrontbuttonStateChanged() {
+  buttonStateChanged(Z_FRONT_SWITCH_SIGNAL_PIN, &ZFrontSwitchPressed);
+}
 
-// void YDownbuttonStateChanged(){
-//   buttonStateChanged(YDownSwitchSignalPin, &YDownSwitchPressed);
-// }
+void YDownbuttonStateChanged() {
+  buttonStateChanged(Y_DOWN_SWITCH_SIGNAL_PIN, &YDownSwitchPressed);
+}
 
-// void YUpbuttonStateChanged(){
-//   buttonStateChanged(YUpSwitchSignalPin, &YUpSwitchPressed);
-// }
+void YUpbuttonStateChanged() { buttonStateChanged(Y_UP_SWITCH_SIGNAL_PIN, &YUpSwitchPressed); }
 
-void configureLimitSwitch(int switchPin, int switchSignalPin, intFunction func) {
-  pinMode(Z_BACK_SWITCH_PIN, OUTPUT);
-  digitalWrite(Z_BACK_SWITCH_PIN, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Z_BACK_SWITCH_SIGNAL_PIN), func, CHANGE);
+void configureLimitSwitch(int switchPin, int switchSignalPin, int lowPin, intFunction func) {
+  pinMode(switchPin, OUTPUT);
+  digitalWrite(switchPin, HIGH);
+
+  attachInterrupt(digitalPinToInterrupt(switchSignalPin), func, CHANGE);
+
+  pinMode(lowPin, OUTPUT);
+  digitalWrite(lowPin, LOW);
+
+  Serial.println("Pin " + String(switchPin) + " is pressed: " + String(curState));
+  if (switchPin == Y_DOWN_SWITCH_PIN)
+    YDownSwitchPressed = curState;
+  else if (switchPin == Y_UP_SWITCH_PIN)
+    YUpSwitchPressed = curState;
+  else if (switchPin == Z_FRONT_SWITCH_PIN)
+    ZFrontSwitchPressed = curState;
+  else if (switchPin == Z_BACK_SWITCH_PIN)
+    ZBackSwitchPressed = curState;
 }
 
 void setup() {
@@ -142,12 +167,16 @@ void setup() {
   xRollServo.attach(X_ROLL_PIN, 800, 2200);
   yRollServo.attach(Y_ROLL_PIN, 800, 2200);
 
-  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, ZBackbuttonStateChanged);
-  // configureLimitSwitch(ZFrontSwitchPin, ZFrontSwitchSignalPin,
-  // ZBackbuttonStateChanged); configureLimitSwitch(YBottomSwitchPin,
-  // YBottomSwitchSignalPin, ZBackbuttonStateChanged);
-  // configureLimitSwitch(YUpSwitchPin, YUpSwitchSignalPin,
-  // ZBackbuttonStateChanged);
+  configureLimitSwitch(Y_UP_SWITCH_PIN, Y_UP_SWITCH_SIGNAL_PIN, Y_UP_SWITCH_LOW_PIN,
+                       YUpbuttonStateChanged);
+  configureLimitSwitch(Y_DOWN_SWITCH_PIN, Y_DOWN_SWITCH_SIGNAL_PIN, Y_DOWN_SWITCH_LOW_PIN,
+                       YDownbuttonStateChanged);
+  configureLimitSwitch(Z_BACK_SWITCH_PIN, Z_BACK_SWITCH_SIGNAL_PIN, Z_BACK_SWITCH_LOW_PIN,
+                       ZBackbuttonStateChanged);
+  configureLimitSwitch(Z_FRONT_SWITCH_PIN, Z_FRONT_SWITCH_SIGNAL_PIN, Z_FRONT_SWITCH_LOW_PIN,
+                       ZFrontbuttonStateChanged);
+
+  Serial.println("Init complete!");
 }
 
 void loop() {
