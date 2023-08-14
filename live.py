@@ -82,15 +82,18 @@ class VideoThread(QThread):
         
         # cap = cv2.VideoCapture(0)
         while self._run_flag:
-            rgb_buffer = self._rgb_camera.data_stream.WaitForFinishedBuffer(5000)
-            rgb_image_ipl = ids_peak_ipl_extension.BufferToImage(rgb_buffer)
-            rgb_image_np = rgb_image_ipl.get_numpy_1D()
-            self._rgb_camera.data_stream.QueueBuffer(rgb_buffer)
-            cv_img = rgb_image_np.reshape(self._rgb_image_size)
-            
+            print("Hi")
+            if self._rgb_camera.is_open:
+                rgb_buffer = self._rgb_camera.data_stream.WaitForFinishedBuffer(5000)
+                rgb_image_ipl = ids_peak_ipl_extension.BufferToImage(rgb_buffer)
+                rgb_image_np = rgb_image_ipl.get_numpy_1D()
+                self._rgb_camera.data_stream.QueueBuffer(rgb_buffer)
+                cv_img = rgb_image_np.reshape(self._rgb_image_size)
+            else:
+                cv_img = np.random.randn(100,100,3)
             qt_img = self._preprocess_fn(cv_img)
             self._camera_view.setPixmap(qt_img)
-            cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+            cv_img = cv2.cvtColor(cv_img.astype(np.float32), cv2.COLOR_BGR2RGB)
             self._queue.put(cv_img)
             sleep(1/30)
         
@@ -316,7 +319,7 @@ class Window(QWidget):
 
     def convert_cv_qt(self, cv_img: np.ndarray) -> QPixmap:
         """Convert from an opencv image to QPixmap."""
-        rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        rgb_image = cv2.cvtColor(cv_img.astype(np.float32), cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_image.shape
         display_height, display_width = (
             self.camera_view.height(),
@@ -368,6 +371,7 @@ class Window(QWidget):
         
     def closeEvent(self, event):
         self.thread._run_flag = False
+        print("close")
         self.thread.wait()
         
 

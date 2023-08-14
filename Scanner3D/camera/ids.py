@@ -19,6 +19,7 @@ class Camera:
 
         self.nodemap_remote_device = None
         self.acquisition_running: bool = False
+        self._is_open = False
 
     def close_device(self):
         self.stop_acquisition()
@@ -30,12 +31,16 @@ class Camera:
             except Exception as e:
                 print(str(e))
 
+    @property
+    def is_open(self):
+        return self._is_open
+
     def open_device(self):
 
         # Return if no device was found
         if self.device_manager.Devices().empty():
             print("No device found!")
-            exit()
+            return
 
         available_devices = {device.ModelName(): idx for idx, device in enumerate(self.device_manager.Devices())}
         self.device_id = available_devices[self.device_name]
@@ -73,6 +78,8 @@ class Camera:
         for i in range(buffer_count_max):
             buffer = self.data_stream.AllocAndAnnounceBuffer(payload_size)
             self.data_stream.QueueBuffer(buffer)
+            
+        self._is_open = True
 
     def start_acquisition(self):
 

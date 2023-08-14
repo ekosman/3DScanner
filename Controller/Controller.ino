@@ -113,7 +113,7 @@ void buttonStateChanged(int signalPin, bool *out) {
 
   if (currentMillis - previousMillisForDebounce >= DebounceTimer) {
     previousMillisForDebounce = currentMillis;
-    *out = 1- *out;
+    *out = 1 - *out;
     // if (digitalRead(signalPin)) {
     //   *out = false;
     //   Serial.print("Up,");
@@ -143,10 +143,21 @@ void YUpbuttonStateChanged(){
 void configureLimitSwitch(int switchPin, int switchSignalPin, int lowPin, intFunction func) {
   pinMode(switchPin, OUTPUT);
   digitalWrite(switchPin, HIGH);
+
   attachInterrupt(digitalPinToInterrupt(switchSignalPin), func, CHANGE);
 
   pinMode(lowPin, OUTPUT);
   digitalWrite(lowPin, LOW);
+
+  Serial.println("Pin " + String(switchPin) + " is pressed: " + String(curState));
+  if (switchPin == Y_DOWN_SWITCH_PIN)
+    YDownSwitchPressed = curState;
+  else if (switchPin == Y_UP_SWITCH_PIN)
+    YUpSwitchPressed = curState;
+  else if (switchPin == Z_FRONT_SWITCH_PIN)
+    ZFrontSwitchPressed = curState;
+  else if (switchPin == Z_BACK_SWITCH_PIN)
+    ZBackSwitchPressed = curState;
 }
 
 void setup() {
@@ -166,7 +177,7 @@ void setup() {
   configureLimitSwitch(Z_FRONT_SWITCH_PIN, Z_FRONT_SWITCH_SIGNAL_PIN, Z_FRONT_SWITCH_LOW_PIN, ZFrontbuttonStateChanged);
   
 
-  Serial.print("Init complete!");
+  Serial.println("Init complete!");
 }
 
 void loop() {
